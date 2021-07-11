@@ -1,5 +1,12 @@
 include: package:very_good_analysis/analysis_options.yaml
 
+analyzer:
+  errors:
+    # allow for asset_does_not_exist
+    unrecognized_error_code: ignore
+    # ignore this in pubspec.yaml
+    asset_does_not_exist: ignore
+
 linter:
   rules:
    public_member_api_docs: false
