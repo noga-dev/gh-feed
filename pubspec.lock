@@ -82,14 +82,14 @@ packages:
       name: flutter_hooks
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.17.0"
+    version: "0.18.0"
   flutter_riverpod:
     dependency: transitive
     description:
       name: flutter_riverpod
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.14.0+3"
+    version: "1.0.0-dev.5"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -113,7 +113,7 @@ packages:
       name: hooks_riverpod
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.14.0+4"
+    version: "1.0.0-dev.5"
   http_parser:
     dependency: transitive
     description:
@@ -176,7 +176,7 @@ packages:
       name: riverpod
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.14.0+3"
+    version: "1.0.0-dev.5"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -302,5 +302,5 @@ packages:
     source: hosted
     version: "2.1.2"
 sdks:
-  dart: ">=2.12.0 <3.0.0"
+  dart: ">=2.13.0 <3.0.0"
   flutter: ">=2.0.0"
