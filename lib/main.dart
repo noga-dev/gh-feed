@@ -53,13 +53,13 @@ class MyApp extends HookConsumerWidget {
       () => ref.watch(dioProvider).get('/users/agondev/received_events'),
       [useMemoizerKey.value],
     );
-    final useGetAuthenticatedUser =
-        useMemoized(() => ref.watch(dioProvider).get('/user'));
+    // final useGetAuthenticatedUser =
+    //     useMemoized(() => ref.watch(dioProvider).get('/user'));
 
     final useGetUserReceivedEventsFuture =
         useFuture(useGetUserReceivedEventsMemoize);
 
-    final useGetAuthenticatedUserFuture = useFuture(useGetAuthenticatedUser);
+    // final useGetAuthenticatedUserFuture = useFuture(useGetAuthenticatedUser);
 
     if (useGetUserReceivedEventsFuture.connectionState ==
             ConnectionState.waiting &&
@@ -80,10 +80,10 @@ class MyApp extends HookConsumerWidget {
         leading: Padding(
           padding: const EdgeInsets.all(10.0),
           child: CircleAvatar(
-            backgroundImage: NetworkImage(
-              useGetAuthenticatedUserFuture.data!.data['avatar_url'],
-            ),
-          ),
+              // backgroundImage: NetworkImage(
+              //   // useGetAuthenticatedUserFuture.data!.data['avatar_url'],
+              // ),
+              ),
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
