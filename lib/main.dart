@@ -49,17 +49,32 @@ class MyApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final useMemoizerKey = useState<Key>(const ValueKey('regular'));
-    final useGetUserReceivedEventsMemoize = useMemoized(
-      () => ref.watch(dioProvider).get('/users/agondev/received_events'),
-      [useMemoizerKey.value],
+    final useGetUserReceivedEventsFuture = useFuture<Response>(
+      useMemoized(
+        () => ref.watch(dioProvider).get('/users/agondev/received_events'),
+        [useMemoizerKey.value],
+      ),
     );
-    final useGetAuthenticatedUser =
-        useMemoized(() => ref.watch(dioProvider).get('/user'));
 
-    final useGetUserReceivedEventsFuture =
-        useFuture(useGetUserReceivedEventsMemoize);
-
-    final useGetAuthenticatedUserFuture = useFuture(useGetAuthenticatedUser);
+    final useGetUserDetailsFuture = useFuture<Response>(
+      useMemoized(
+        () => (ref
+                .watch(dioProvider)
+                .options
+                .headers
+                .containsKey('Authorization'))
+            ? ref.watch(dioProvider).get('/user')
+            : Future.value(
+                Response(
+                  requestOptions: RequestOptions(path: ''),
+                  data: const {
+                    'avatar_url': 'https://github.com/identicons/jasonlong.png',
+                  },
+                ),
+              ),
+        [useMemoizerKey.value],
+      ),
+    );
 
     if (useGetUserReceivedEventsFuture.connectionState ==
             ConnectionState.waiting &&
@@ -75,15 +90,64 @@ class MyApp extends HookConsumerWidget {
       );
     }
 
+    final avatar = CircleAvatar(
+      radius: 40,
+      backgroundImage: NetworkImage(
+        useGetUserDetailsFuture.hasData
+            ? useGetUserDetailsFuture.data!.data['avatar_url']
+            : 'https://github.com/identicons/jasonlong.png',
+      ),
+    );
+
     return Scaffold(
+      drawer: Drawer(
+        child: Column(
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.teal.shade700,
+              ),
+              child: Center(
+                child: avatar,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                children: [
+                  // TODO make optional either username for only public data
+                  // OR key for private as well
+                  // AND add this as a separate option to track other users?
+                  TextField(
+                    decoration: const InputDecoration(hintText: 'Auth Key'),
+                    obscureText: true,
+                    onChanged: (val) {
+                      try {
+                        ref.watch(dioProvider).options.headers.update(
+                              'Authorization',
+                              (value) => 'token $val',
+                              ifAbsent: () => 'token $val',
+                            );
+                      } on DioError {
+                        ref
+                            .watch(dioProvider)
+                            .options
+                            .headers
+                            .remove('Authorization');
+                      }
+                      useMemoizerKey.value = UniqueKey();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
       appBar: AppBar(
         leading: Padding(
           padding: const EdgeInsets.all(10.0),
-          child: CircleAvatar(
-            backgroundImage: NetworkImage(
-              useGetAuthenticatedUserFuture.data!.data['avatar_url'],
-            ),
-          ),
+          child: avatar,
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
