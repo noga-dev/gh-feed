@@ -53,10 +53,8 @@ class MyApp extends HookConsumerWidget {
       () => ref.watch(dioProvider).get('/users/agondev/received_events'),
       [useMemoizerKey.value],
     );
-    final useGetAuthenticatedUser = useMemoized(
-      () => ref.watch(dioProvider).get('/user'),
-      [useMemoizerKey.value],
-    );
+    final useGetAuthenticatedUser =
+        useMemoized(() => ref.watch(dioProvider).get('/user'));
 
     final useGetUserReceivedEventsFuture =
         useFuture(useGetUserReceivedEventsMemoize);
