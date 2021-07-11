@@ -80,7 +80,7 @@ class MyApp extends HookConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(10.0),
           child: CircleAvatar(
             backgroundImage: NetworkImage(
               useGetAuthenticatedUserFuture.data!.data['avatar_url'],
