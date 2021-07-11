@@ -49,33 +49,50 @@ class MyApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final useMemoizerKey = useState<Key>(const ValueKey('regular'));
-    final useGetUserMemoize = useMemoized(
+    final useGetUserReceivedEventsMemoize = useMemoized(
       () => ref.watch(dioProvider).get('/users/agondev/received_events'),
       [useMemoizerKey.value],
     );
-    final useGetUserFuture = useFuture(useGetUserMemoize);
+    final useGetAuthenticatedUser = useMemoized(
+      () => ref.watch(dioProvider).get('/user'),
+      [useMemoizerKey.value],
+    );
 
-    if (useGetUserFuture.connectionState == ConnectionState.waiting &&
-        !useGetUserFuture.hasData) {
+    final useGetUserReceivedEventsFuture =
+        useFuture(useGetUserReceivedEventsMemoize);
+
+    final useGetAuthenticatedUserFuture = useFuture(useGetAuthenticatedUser);
+
+    if (useGetUserReceivedEventsFuture.connectionState ==
+            ConnectionState.waiting &&
+        !useGetUserReceivedEventsFuture.hasData) {
       return const Center(
         child: CircularProgressIndicator(),
       );
     }
 
-    if (useGetUserFuture.hasError) {
+    if (useGetUserReceivedEventsFuture.hasError) {
       return Center(
-        child: Text(useGetUserFuture.error.toString()),
+        child: Text(useGetUserReceivedEventsFuture.error.toString()),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CircleAvatar(
+            backgroundImage: NetworkImage(
+              useGetAuthenticatedUserFuture.data!.data['avatar_url'],
+            ),
+          ),
+        ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               // ignore: lines_longer_than_80_chars
-              'Requests left: ${useGetUserFuture.data!.headers.value('x-ratelimit-remaining')!}',
+              'Requests left: ${useGetUserReceivedEventsFuture.data!.headers.value('x-ratelimit-remaining')!}',
             ),
           ],
         ),
@@ -92,7 +109,7 @@ class MyApp extends HookConsumerWidget {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, idx) {
-                final datum = useGetUserFuture.data!.data[idx];
+                final datum = useGetUserReceivedEventsFuture.data!.data[idx];
                 return Center(
                   child: Card(
                     color: datum['public']
@@ -167,7 +184,8 @@ class MyApp extends HookConsumerWidget {
                   ),
                 );
               },
-              childCount: (useGetUserFuture.data!.data as List).length,
+              childCount:
+                  (useGetUserReceivedEventsFuture.data!.data as List).length,
             ),
           ),
         ],
