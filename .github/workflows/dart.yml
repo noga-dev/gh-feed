@@ -31,7 +31,7 @@ jobs:
         run: flutter format --set-exit-if-changed .
       - name: Analyze
         run: flutter analyze
-      - uses: erickzanardo/flutter-gh-pages@v5
+      - uses: erickzanardo/flutter-gh-pages@v3
         # with:
         #   dartDefine: "hostDest=githubPages"
 
