@@ -8,7 +8,7 @@ import 'package:timeago/timeago.dart';
 
 final dioProvider = Provider<Dio>((red) => Dio());
 
-void main() async {
+Future<void> main() async {
   await dotenv.load(fileName: 'data.env');
   final container = ProviderContainer();
 
