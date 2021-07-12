@@ -68,7 +68,8 @@ class MyApp extends HookConsumerWidget {
                 Response(
                   requestOptions: RequestOptions(path: ''),
                   data: const {
-                    'avatar_url': 'https://github.com/identicons/jasonlong.png',
+                    'avatar_url':
+                        'https://avatars.githubusercontent.com/in/15368?s=64&v=4',
                   },
                 ),
               ),
@@ -100,6 +101,7 @@ class MyApp extends HookConsumerWidget {
     );
 
     return Scaffold(
+      drawerEdgeDragWidth: 32,
       drawer: Drawer(
         child: Column(
           children: [
@@ -147,7 +149,12 @@ class MyApp extends HookConsumerWidget {
       appBar: AppBar(
         leading: Padding(
           padding: const EdgeInsets.all(10.0),
-          child: avatar,
+          child: Builder(
+            builder: (context) => IconButton(
+              icon: avatar,
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
