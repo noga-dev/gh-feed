@@ -49,9 +49,12 @@ class MyApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final useMemoizerKey = useState<Key>(const ValueKey('regular'));
+    final useUserLogin = useState<String>('agondev');
     final useGetUserReceivedEventsFuture = useFuture<Response>(
       useMemoized(
-        () => ref.watch(dioProvider).get('/users/agondev/received_events'),
+        () => ref
+            .watch(dioProvider)
+            .get('/users/${useUserLogin.value}/received_events'),
         [useMemoizerKey.value],
       ),
     );
@@ -130,6 +133,11 @@ class MyApp extends HookConsumerWidget {
                               (value) => 'token $val',
                               ifAbsent: () => 'token $val',
                             );
+                        if (useGetUserDetailsFuture.data!.data['login'] !=
+                            null) {
+                          useUserLogin.value =
+                              useGetUserDetailsFuture.data!.data['login'];
+                        }
                       } on DioError {
                         ref
                             .watch(dioProvider)
