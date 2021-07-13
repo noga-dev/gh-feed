@@ -53,11 +53,6 @@ class MyApp extends HookConsumerWidget {
     final useGetUserDetailsFuture = useFuture<Response>(
       useMemoized(
         () async {
-          print(ref
-              .watch(dioProvider)
-              .options
-              .headers
-              .containsKey('Authorization'));
           Response result;
           if (ref
               .watch(dioProvider)
@@ -83,14 +78,9 @@ class MyApp extends HookConsumerWidget {
     );
     final useGetUserReceivedEventsFuture = useFuture<Response>(
       useMemoized(
-        () {
-          print(
-            'user:${useUserLogin.value}-keyVal:${useMemoizerKey.value}-auth:${ref.watch(dioProvider).options.headers['Authorization']}',
-          );
-          return ref
-              .watch(dioProvider)
-              .get('/users/${useUserLogin.value}/received_events');
-        },
+        () => ref
+            .watch(dioProvider)
+            .get('/users/${useUserLogin.value}/received_events'),
         [
           useMemoizerKey.value,
           useUserLogin.value,
@@ -106,6 +96,9 @@ class MyApp extends HookConsumerWidget {
         child: CircularProgressIndicator(),
       );
     }
+
+    // ignore: avoid_print
+    print('test');
 
     if (useGetUserReceivedEventsFuture.hasError) {
       return Center(
