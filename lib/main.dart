@@ -16,7 +16,7 @@ Future<void> main() async {
     'Accept': 'application/vnd.github.v3+json',
   };
 
-  final ghAuthKey = dotenv.env['GH_SECRET_KEY'];
+  final ghAuthKey = dotenv.env['GH_SECRET_KEY1'];
 
   if (ghAuthKey != null) {
     dioRequestHeaders.putIfAbsent(
@@ -48,35 +48,54 @@ class MyApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final useMemoizerKey = useState<Key>(const ValueKey('regular'));
-    final useUserLogin = useState<String>('agondev');
-    final useGetUserReceivedEventsFuture = useFuture<Response>(
-      useMemoized(
-        () => ref
-            .watch(dioProvider)
-            .get('/users/${useUserLogin.value}/received_events'),
-        [useMemoizerKey.value],
-      ),
-    );
-
+    final useMemoizerKey = useState<Key>(UniqueKey());
+    final useUserLogin = useState<String>('rrousselGit');
     final useGetUserDetailsFuture = useFuture<Response>(
       useMemoized(
-        () => (ref
-                .watch(dioProvider)
-                .options
-                .headers
-                .containsKey('Authorization'))
-            ? ref.watch(dioProvider).get('/user')
-            : Future.value(
-                Response(
-                  requestOptions: RequestOptions(path: ''),
-                  data: const {
-                    'avatar_url':
-                        'https://avatars.githubusercontent.com/in/15368?s=64&v=4',
-                  },
-                ),
-              ),
-        [useMemoizerKey.value],
+        () async {
+          print(ref
+              .watch(dioProvider)
+              .options
+              .headers
+              .containsKey('Authorization'));
+          Response result;
+          if (ref
+              .watch(dioProvider)
+              .options
+              .headers
+              .containsKey('Authorization')) {
+            result = await ref.watch(dioProvider).get('/user');
+            useUserLogin.value = result.data['login'];
+          } else {
+            result = Response(
+              requestOptions: RequestOptions(path: ''),
+              data: {
+                'login': useUserLogin.value,
+                'avatar_url':
+                    'https://avatars.githubusercontent.com/in/15368?s=64&v=4',
+              },
+            );
+          }
+          return result;
+        },
+        [ref.watch(dioProvider).options.headers['Authorization']],
+      ),
+    );
+    final useGetUserReceivedEventsFuture = useFuture<Response>(
+      useMemoized(
+        () {
+          print(
+            'user:${useUserLogin.value}-keyVal:${useMemoizerKey.value}-auth:${ref.watch(dioProvider).options.headers['Authorization']}',
+          );
+          return ref
+              .watch(dioProvider)
+              .get('/users/${useUserLogin.value}/received_events');
+        },
+        [
+          useMemoizerKey.value,
+          useUserLogin.value,
+          ref.watch(dioProvider).options.headers['Authorization'],
+        ],
       ),
     );
 
@@ -126,18 +145,13 @@ class MyApp extends HookConsumerWidget {
                   TextField(
                     decoration: const InputDecoration(hintText: 'Auth Key'),
                     obscureText: true,
-                    onChanged: (val) {
+                    onChanged: (val) async {
                       try {
                         ref.watch(dioProvider).options.headers.update(
                               'Authorization',
                               (value) => 'token $val',
                               ifAbsent: () => 'token $val',
                             );
-                        if (useGetUserDetailsFuture.data!.data['login'] !=
-                            null) {
-                          useUserLogin.value =
-                              useGetUserDetailsFuture.data!.data['login'];
-                        }
                       } on DioError {
                         ref
                             .watch(dioProvider)
