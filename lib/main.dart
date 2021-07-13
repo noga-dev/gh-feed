@@ -16,7 +16,7 @@ Future<void> main() async {
     'Accept': 'application/vnd.github.v3+json',
   };
 
-  final ghAuthKey = dotenv.env['GH_SECRET_KEY'];
+  final ghAuthKey = dotenv.env['GH_SECRET_KEY2'];
 
   if (ghAuthKey != null) {
     dioRequestHeaders.putIfAbsent(
@@ -28,6 +28,7 @@ Future<void> main() async {
   container.read(dioProvider).options = BaseOptions(
     baseUrl: 'https://api.github.com/',
     headers: dioRequestHeaders,
+    // validateStatus: (status) => status! < 500,
   );
 
   runApp(
@@ -48,50 +49,66 @@ class MyApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final useMemoizerKey = useState<Key>(const ValueKey('regular'));
-    final useUserLogin = useState<String>('agondev');
-    final useGetUserReceivedEventsFuture = useFuture<Response>(
-      useMemoized(
-        () => ref
-            .watch(dioProvider)
-            .get('/users/${useUserLogin.value}/received_events'),
-        [useMemoizerKey.value],
-      ),
-    );
-
+    final useMemoizerKeys = useState<List<Key>>([UniqueKey()]);
+    final useUserLogin = useState<String>('rrousselGit');
     final useGetUserDetailsFuture = useFuture<Response>(
       useMemoized(
-        () => (ref
-                .watch(dioProvider)
-                .options
-                .headers
-                .containsKey('Authorization'))
-            ? ref.watch(dioProvider).get('/user')
-            : Future.value(
-                Response(
-                  requestOptions: RequestOptions(path: ''),
-                  data: const {
-                    'avatar_url':
-                        'https://avatars.githubusercontent.com/in/15368?s=64&v=4',
-                  },
-                ),
-              ),
-        [useMemoizerKey.value],
+        () {
+          print('userDetails ${useUserLogin.value}');
+          return (ref
+                  .watch(dioProvider)
+                  .options
+                  .headers
+                  .containsKey('Authorization'))
+              ? ref.watch(dioProvider).get('/user')
+              : Future.value(
+                  Response(
+                    requestOptions: RequestOptions(path: ''),
+                    data: {
+                      'avatar_url':
+                          'https://avatars.githubusercontent.com/in/15368?s=64&v=4',
+                      'login': '${useUserLogin.value}',
+                    },
+                  ),
+                );
+        },
+        useMemoizerKeys.value,
+      ),
+    );
+    final useGetUserReceivedEventsFuture = useFuture<Response>(
+      useMemoized(
+        () {
+          print('userEvents ${useUserLogin.value}');
+          return ref
+              .watch(dioProvider)
+              .get('/users/${useUserLogin.value}/received_events');
+        },
+        useMemoizerKeys.value,
       ),
     );
 
     if (useGetUserReceivedEventsFuture.connectionState ==
             ConnectionState.waiting &&
         !useGetUserReceivedEventsFuture.hasData) {
-      return const Center(
-        child: CircularProgressIndicator(),
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
       );
     }
 
     if (useGetUserReceivedEventsFuture.hasError) {
-      return Center(
-        child: Text(useGetUserReceivedEventsFuture.error.toString()),
-      );
+      ref.watch(dioProvider).options.headers.remove('Authorization');
+      useMemoizerKeys.value = [UniqueKey()];
+      return Scaffold(
+          body: Center(
+              child: SingleChildScrollView(
+                  child:
+                      Text(useGetUserReceivedEventsFuture.error.toString()))));
+    }
+
+    if (useGetUserDetailsFuture.hasData) {
+      useUserLogin.value = useGetUserDetailsFuture.data!.data['login'];
     }
 
     final avatar = CircleAvatar(
@@ -99,7 +116,7 @@ class MyApp extends HookConsumerWidget {
       backgroundImage: NetworkImage(
         useGetUserDetailsFuture.hasData
             ? useGetUserDetailsFuture.data!.data['avatar_url']
-            : 'https://github.com/identicons/jasonlong.png',
+            : 'https://avatars.githubusercontent.com/in/15368?s=64&v=4',
       ),
     );
 
@@ -133,19 +150,14 @@ class MyApp extends HookConsumerWidget {
                               (value) => 'token $val',
                               ifAbsent: () => 'token $val',
                             );
-                        if (useGetUserDetailsFuture.data!.data['login'] !=
-                            null) {
-                          useUserLogin.value =
-                              useGetUserDetailsFuture.data!.data['login'];
-                        }
-                      } on DioError {
+                        useMemoizerKeys.value = [UniqueKey()];
+                      } catch (e) {
                         ref
                             .watch(dioProvider)
                             .options
                             .headers
                             .remove('Authorization');
                       }
-                      useMemoizerKey.value = UniqueKey();
                     },
                   ),
                 ],
@@ -179,7 +191,7 @@ class MyApp extends HookConsumerWidget {
         slivers: [
           CupertinoSliverRefreshControl(
             onRefresh: () {
-              useMemoizerKey.value = UniqueKey();
+              useMemoizerKeys.value = [UniqueKey()];
               return Future<void>.value(null);
             },
           ),
