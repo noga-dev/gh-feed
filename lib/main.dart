@@ -193,21 +193,75 @@ class MyApp extends HookConsumerWidget {
           ],
         ),
       ),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          CupertinoSliverRefreshControl(
-            onRefresh: () {
-              useMemoizerKey.value = UniqueKey();
-              return Future<void>.value(null);
-            },
-          ),
-          ActivityList(
-            rawFeed: useGetUserReceivedEventsFuture.data!.data,
-            childCount:
-                (useGetUserReceivedEventsFuture.data!.data as List).length,
-          ),
-        ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          print(constraints.maxWidth);
+          if (constraints.maxWidth < 900) {
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                CupertinoSliverRefreshControl(
+                  onRefresh: () {
+                    useMemoizerKey.value = UniqueKey();
+                    return Future<void>.value(null);
+                  },
+                ),
+                ActivityList(
+                  rawFeed: useGetUserReceivedEventsFuture.data!.data,
+                  childCount:
+                      (useGetUserReceivedEventsFuture.data!.data as List)
+                          .length,
+                ),
+              ],
+            );
+          } else {
+            return Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text(
+                        'Activity Feed',
+                        style: Theme.of(context).textTheme.headline6,
+                      ),
+                      Expanded(
+                        child: CustomScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          slivers: [
+                            CupertinoSliverRefreshControl(
+                              onRefresh: () {
+                                useMemoizerKey.value = UniqueKey();
+                                return Future<void>.value(null);
+                              },
+                            ),
+                            ActivityList(
+                              rawFeed:
+                                  useGetUserReceivedEventsFuture.data!.data,
+                              childCount: (useGetUserReceivedEventsFuture
+                                      .data!.data as List)
+                                  .length,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    children: [
+                      Text(
+                        'Trending Repos',
+                        style: Theme.of(context).textTheme.headline6,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
+        },
       ),
     );
   }
