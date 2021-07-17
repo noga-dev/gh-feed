@@ -18,9 +18,9 @@ class ActivityList extends StatelessWidget {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, idx) {
-          final feedData = rawFeed[idx];
+          final event = rawFeed[idx];
           return Card(
-            color: feedData['public']
+            color: event['public']
                 ? GhColors.green.shade800!.withOpacity(.5)
                 : GhColors.orange.shade800!.withOpacity(.5),
             child: ExpansionTile(
@@ -28,8 +28,8 @@ class ActivityList extends StatelessWidget {
                   const EdgeInsets.symmetric(vertical: 6, horizontal: 10) +
                       const EdgeInsets.only(left: 12, right: 4),
               leading: UserAvatar(
-                avatarUrl: feedData['actor']['avatar_url'].toString(),
-                username: feedData['actor']['login'],
+                avatarUrl: event['actor']['avatar_url'].toString(),
+                username: event['actor']['login'],
               ),
               title: RichText(
                 text: TextSpan(
@@ -40,7 +40,7 @@ class ActivityList extends StatelessWidget {
                     ),
                     WidgetSpan(
                       child: Icon(
-                        feedData['payload']['action'].toString() == 'started'
+                        event['payload']['action'].toString() == 'started'
                             ? Icons.star
                             : Icons.help,
                       ),
@@ -50,16 +50,16 @@ class ActivityList extends StatelessWidget {
                       alignment: PlaceholderAlignment.bottom,
                     ),
                     TextSpan(
-                      text: feedData['repo']['name'].toString().substring(
+                      text: event['repo']['name'].toString().substring(
                             0,
-                            feedData['repo']['name'].toString().indexOf('/'),
+                            event['repo']['name'].toString().indexOf('/'),
                           ),
                     ),
                   ],
                 ),
               ),
               trailing: CreatedAt(
-                timeCreated: feedData['created_at'],
+                timeCreated: event['created_at'],
               ),
               children: [
                 Card(
@@ -67,7 +67,7 @@ class ActivityList extends StatelessWidget {
                   child: ListTile(
                     leading: const Text('User'),
                     title: Text(
-                      feedData['actor']['display_login'].toString(),
+                      event['actor']['display_login'].toString(),
                     ),
                   ),
                 ),
@@ -76,7 +76,7 @@ class ActivityList extends StatelessWidget {
                   child: ListTile(
                     leading: const Text('Repo'),
                     title: Text(
-                      feedData['repo']['name'].toString(),
+                      event['repo']['name'].toString(),
                     ),
                   ),
                 ),
