@@ -42,6 +42,9 @@ class _ActivityListState extends State<ActivityList> {
               color: Theme.of(context).brightness == Brightness.dark
                   ? themeDataDark.cardColor
                   : themeDataLight.cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8)
+              ),
               child: Column(
                 children: [
                   const SizedBox(height: 8),
@@ -56,11 +59,17 @@ class _ActivityListState extends State<ActivityList> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Card(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? GhColors.grey.shade900
-                          : Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? GhColors.grey.shade900
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(
+                          color: GhColors.grey.shade400!,
+                        ),
+                      ),
                       child: Column(
                         children: [
                           ListTile(
