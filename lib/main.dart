@@ -3,8 +3,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gaf/theme/app_themes.dart';
+import 'package:gaf/widgets/activity_list.dart';
+import 'package:gaf/widgets/created_at.dart';
+import 'package:gaf/theme/github_colors.dart';
+import 'package:gaf/widgets/requests_left.dart';
+import 'package:gaf/widgets/user_avatar.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:timeago/timeago.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 final dioProvider = Provider<Dio>((red) => Dio());
 
@@ -36,7 +43,8 @@ Future<void> main() async {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
-        theme: ThemeData.dark(),
+        theme: basicLight,
+        darkTheme: basicDark,
         home: const MyApp(),
       ),
     ),
@@ -174,9 +182,9 @@ class MyApp extends HookConsumerWidget {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              // ignore: lines_longer_than_80_chars
-              'Requests left: ${useGetUserReceivedEventsFuture.data!.headers.value('x-ratelimit-remaining')!}',
+            RequestsLeft(
+              count: useGetUserReceivedEventsFuture.data!.headers
+                  .value('x-ratelimit-remaining')!,
             ),
           ],
         ),
@@ -190,87 +198,10 @@ class MyApp extends HookConsumerWidget {
               return Future<void>.value(null);
             },
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, idx) {
-                final datum = useGetUserReceivedEventsFuture.data!.data[idx];
-                return Center(
-                  child: Card(
-                    color: datum['public']
-                        ? Colors.green.shade800.withOpacity(.5)
-                        : Colors.orange.shade800.withOpacity(.5),
-                    child: ExpansionTile(
-                      tilePadding: const EdgeInsets.symmetric(
-                              vertical: 6, horizontal: 10) +
-                          const EdgeInsets.only(left: 12, right: 4),
-                      leading: Image.network(
-                        datum['actor']['avatar_url'].toString(),
-                        height: 36,
-                      ),
-                      title: RichText(
-                        text: TextSpan(
-                          children: [
-                            const WidgetSpan(
-                              child: Icon(Icons.chevron_right),
-                              alignment: PlaceholderAlignment.bottom,
-                            ),
-                            WidgetSpan(
-                              child: Icon(
-                                datum['payload']['action'].toString() ==
-                                        'started'
-                                    ? Icons.star
-                                    : Icons.help,
-                              ),
-                            ),
-                            const WidgetSpan(
-                              child: Icon(Icons.chevron_right),
-                              alignment: PlaceholderAlignment.bottom,
-                            ),
-                            TextSpan(
-                              text: datum['repo']['name'].toString().substring(
-                                    0,
-                                    datum['repo']['name']
-                                        .toString()
-                                        .indexOf('/'),
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      trailing: Text(
-                        format(
-                          DateTime.parse(
-                            datum['created_at'],
-                          ),
-                        ),
-                      ),
-                      children: [
-                        Card(
-                          color: Colors.transparent,
-                          child: ListTile(
-                            leading: const Text('User'),
-                            title: Text(
-                              datum['actor']['display_login'].toString(),
-                            ),
-                          ),
-                        ),
-                        Card(
-                          color: Colors.transparent,
-                          child: ListTile(
-                            leading: const Text('Repo'),
-                            title: Text(
-                              datum['repo']['name'].toString(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-              childCount:
-                  (useGetUserReceivedEventsFuture.data!.data as List).length,
-            ),
+          ActivityList(
+            rawFeed: useGetUserReceivedEventsFuture.data!.data,
+            childCount:
+                (useGetUserReceivedEventsFuture.data!.data as List).length,
           ),
         ],
       ),

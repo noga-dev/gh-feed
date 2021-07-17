@@ -31,6 +31,8 @@ dependencies:
   hooks_riverpod: ^1.0.0-dev.5
   flutter_hooks: ^0.18.0
   flutter_dotenv: ^5.0.0
+  material_design_icons_flutter: ^5.0.5955-rc.1
+  google_fonts: ^2.1.0
   very_good_analysis: ^2.1.2
   url_launcher: ^6.0.9
   dio: ^4.0.0
