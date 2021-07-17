@@ -49,61 +49,32 @@ class _ActivityListState extends State<ActivityList> {
                       avatarUrl: event.actor!.avatarUrl!,
                       username: event.actor!.login!,
                     ),
-                    title: RichText(
-                      text: TextSpan(
-                        children: [
-                          const WidgetSpan(
-                            child: Icon(Icons.chevron_right),
-                            alignment: PlaceholderAlignment.bottom,
-                          ),
-                          WidgetSpan(
-                            child: Icon(
-                              event.payload!['action'].toString() == 'started'
-                                  ? Icons.star
-                                  : Icons.help,
-                            ),
-                          ),
-                          const WidgetSpan(
-                            child: Icon(Icons.chevron_right),
-                            alignment: PlaceholderAlignment.bottom,
-                          ),
-                          TextSpan(
-                            text: event.repo!.name.substring(
-                              0,
-                              event.repo!.name.indexOf('/'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    title: Text(event.actor!.login!),
                     trailing: CreatedAt(
                       timeCreated: event.createdAt!,
                     ),
                   ),
-                  Card(
-                    color: Colors.transparent,
-                    child: ListTile(
-                      leading: const Text('User'),
-                      title: Text(
-                        event.actor!.login!,
-                      ),
-                    ),
-                  ),
-                  Card(
-                    color: Colors.transparent,
-                    child: ListTile(
-                      leading: const Text('Repo'),
-                      title: Text(
-                        event.repo!.name,
-                      ),
-                    ),
-                  ),
-                  Card(
-                    color: Colors.transparent,
-                    child: ListTile(
-                      leading: const Text('Type'),
-                      title: Text(
-                        event.type!,
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Card(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? GhColors.grey.shade900
+                          : Colors.white,
+                      child: Column(
+                        children: [
+                          ListTile(
+                            leading: const Text('Repo'),
+                            title: Text(
+                              event.repo!.name,
+                            ),
+                          ),
+                          ListTile(
+                            leading: const Text('Type'),
+                            title: Text(
+                              event.type!,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
