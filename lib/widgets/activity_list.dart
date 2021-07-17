@@ -44,6 +44,7 @@ class _ActivityListState extends State<ActivityList> {
                   : themeDataLight.cardColor,
               child: Column(
                 children: [
+                  const SizedBox(height: 8),
                   ListTile(
                     leading: UserAvatar(
                       avatarUrl: event.actor!.avatarUrl!,
