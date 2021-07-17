@@ -255,7 +255,7 @@ class MyApp extends HookConsumerWidget {
                   child: Column(
                     children: [
                       Text(
-                        'Trending Repos',
+                        'Daily Trending Repos',
                         style: Theme.of(context).textTheme.headline6,
                       ),
                       Expanded(
