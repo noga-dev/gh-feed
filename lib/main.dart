@@ -7,6 +7,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gaf/theme/app_themes.dart';
 import 'package:gaf/widgets/activity_list.dart';
 import 'package:gaf/widgets/requests_left.dart';
+import 'package:gaf/widgets/trending_repos.dart';
+import 'package:gh_trend/gh_trend.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:very_good_analysis/very_good_analysis.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -63,6 +65,9 @@ class MyApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final useMemoizerKey = useState<Key>(UniqueKey());
+    final useGetTrendingRepos = useFuture<List<GithubRepoItem>>(
+      useMemoized(() async => await ghTrendingRepositories()),
+    );
     final useUserLogin = useState<String>('rrousselGit');
     final useGetUserDetailsFuture = useFuture<Response>(
       useMemoized(
@@ -195,7 +200,6 @@ class MyApp extends HookConsumerWidget {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          print(constraints.maxWidth);
           if (constraints.maxWidth < 900) {
             return CustomScrollView(
               physics: const BouncingScrollPhysics(),
@@ -248,12 +252,16 @@ class MyApp extends HookConsumerWidget {
                   ),
                 ),
                 Expanded(
-                  flex: 2,
                   child: Column(
                     children: [
                       Text(
                         'Trending Repos',
                         style: Theme.of(context).textTheme.headline6,
+                      ),
+                      Expanded(
+                        child: TrendingRepos(
+                          trendingRepos: useGetTrendingRepos.data ?? [],
+                        ),
                       ),
                     ],
                   ),
