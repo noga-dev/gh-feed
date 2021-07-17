@@ -7,16 +7,12 @@ class CreatedAt extends StatelessWidget {
     required this.timeCreated,
   }) : super(key: key);
 
-  final String timeCreated;
+  final DateTime timeCreated;
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      format(
-        DateTime.parse(
-          timeCreated,
-        ),
-      ),
+      format(timeCreated),
     );
   }
 }

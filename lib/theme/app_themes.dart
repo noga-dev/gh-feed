@@ -7,6 +7,7 @@ final themeDataLight = ThemeData(
   primaryColor: GhColors.blue,
   accentColor: GhColors.blue.shade300,
   canvasColor: GhColors.grey.shadeZero,
+  cardColor: Colors.white,
   textTheme: GoogleFonts.interTextTheme(
     ThemeData.light().textTheme,
   ),
@@ -28,6 +29,7 @@ final themeDataDark = ThemeData(
   primaryColor: GhColors.blue,
   accentColor: GhColors.blue.shade300,
   canvasColor: GhColors.grey.shade900,
+  cardColor: GhColors.grey.shade800,
   textTheme: GoogleFonts.interTextTheme(
     ThemeData.dark().textTheme,
   ),
