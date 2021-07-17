@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gh_trend/gh_trend.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class TrendingRepos extends StatelessWidget {
   const TrendingRepos({
