@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +16,8 @@ final boxProvider = Provider<Box>((ref) => Hive.box('sharedPrefsBox'));
 
 Future<void> main() async {
   final container = ProviderContainer();
+  // TODO add encryption
+  // TODO costly operation -> show splash?
   await Hive.initFlutter().then((value) => Hive.openBox('sharedPrefsBox'));
 
   // await dotenv.load(fileName: 'data.env');
