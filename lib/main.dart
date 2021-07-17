@@ -1,29 +1,33 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+// ignore: unused_import
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gaf/theme/app_themes.dart';
 import 'package:gaf/widgets/activity_list.dart';
-import 'package:gaf/widgets/created_at.dart';
-import 'package:gaf/theme/github_colors.dart';
 import 'package:gaf/widgets/requests_left.dart';
-import 'package:gaf/widgets/user_avatar.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:timeago/timeago.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:very_good_analysis/very_good_analysis.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-final dioProvider = Provider<Dio>((red) => Dio());
+final dioProvider = Provider<Dio>((ref) => Dio());
+final boxProvider = Provider<Box>((ref) => Hive.box('sharedPrefsBox'));
 
 Future<void> main() async {
-  await dotenv.load(fileName: 'data.env');
   final container = ProviderContainer();
+  await Hive.initFlutter().then((value) => Hive.openBox('sharedPrefsBox'));
+
+  // await dotenv.load(fileName: 'data.env');
+  // final ghAuthKey = dotenv.env['GH_SECRET_KEY'];
 
   final dioRequestHeaders = {
     'Accept': 'application/vnd.github.v3+json',
   };
 
-  final ghAuthKey = dotenv.env['GH_SECRET_KEY1'];
+  final ghAuthKey = container.read(boxProvider).get('secretKey');
 
   if (ghAuthKey != null) {
     dioRequestHeaders.putIfAbsent(
@@ -37,14 +41,16 @@ Future<void> main() async {
     headers: dioRequestHeaders,
   );
 
+  // TODO add shared prefs or secured shared prefs or hive to store key
   runApp(
     UncontrolledProviderScope(
       container: container,
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
-        theme: basicLight,
-        darkTheme: basicDark,
+        title: 'Github Feeder',
+        theme: themeDataLight,
+        darkTheme: themeDataDark,
+        themeMode: ThemeMode.dark,
         home: const MyApp(),
       ),
     ),
@@ -105,9 +111,6 @@ class MyApp extends HookConsumerWidget {
       );
     }
 
-    // ignore: avoid_print
-    print('test');
-
     if (useGetUserReceivedEventsFuture.hasError) {
       return Center(
         child: Text(useGetUserReceivedEventsFuture.error.toString()),
@@ -153,6 +156,7 @@ class MyApp extends HookConsumerWidget {
                               (value) => 'token $val',
                               ifAbsent: () => 'token $val',
                             );
+                        unawaited(ref.watch(boxProvider).put('secretKey', val));
                       } on DioError {
                         ref
                             .watch(dioProvider)

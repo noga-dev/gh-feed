@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gaf/theme/github_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-final basicLight = ThemeData(
+final themeDataLight = ThemeData(
   brightness: Brightness.light,
   primaryColor: GhColors.blue,
   accentColor: GhColors.blue.shade300,
@@ -23,7 +23,7 @@ final basicLight = ThemeData(
 );
 
 /// A custom dark application theme that uses colors defined in [GhColors]
-final basicDark = ThemeData(
+final themeDataDark = ThemeData(
   brightness: Brightness.dark,
   primaryColor: GhColors.blue,
   accentColor: GhColors.blue.shade300,
