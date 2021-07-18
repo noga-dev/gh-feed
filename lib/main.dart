@@ -156,7 +156,19 @@ class MyApp extends HookConsumerWidget {
                 color: Colors.teal.shade700,
               ),
               child: Center(
-                child: avatar,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    avatar,
+                    if (useGetUserDetailsFuture.snapshot.hasData) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        useGetUserDetailsFuture.snapshot.data!.data['login'],
+                        style: Theme.of(context).textTheme.headline6,
+                      ),
+                    ]
+                  ],
+                ),
               ),
             ),
             Padding(
