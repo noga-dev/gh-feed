@@ -41,7 +41,6 @@ Future<void> main() async {
     headers: dioRequestHeaders,
   );
 
-  // TODO add shared prefs or secured shared prefs or hive to store key
   runApp(
     UncontrolledProviderScope(
       container: container,
@@ -71,6 +70,7 @@ class MyApp extends HookConsumerWidget {
       () => ghTrendingRepositories(
         spokenLanguageCode: 'en',
         dateRange: GhTrendDateRange.today,
+        proxy: 'https://cors.bridged.cc/',
       ),
     );
     final useGetUserDetailsFuture = useMemoizedFuture(() async {

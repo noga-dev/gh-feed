@@ -145,9 +145,11 @@ packages:
   gh_trend:
     dependency: "direct main"
     description:
-      name: gh_trend
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: dab1497e270fc178b2f5918573042c1a89b75b1b
+      url: "https://github.com/Agondev/gh_trend"
+    source: git
     version: "1.0.3"
   github:
     dependency: "direct main"
