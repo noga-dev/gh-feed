@@ -260,19 +260,17 @@ class MyApp extends HookConsumerWidget {
                   children:
                       (useGetPublicEvents.snapshot.data!.data as List).map(
                     (e) {
-                      // IssueCommentEvent
-
-                      var payload = 'error';
-                      if (e['type'] == 'IssueCommentEvent') {
-                        payload = 'test';
-                        e['payload']['issue']['labels'][0]['description'];
-                      } else if (e['type'] == 'PushEvent') {
-                        payload = e['payload']['commits'][0]['url'];
-                      } else if (e['type'] == 'CreateEvent') {
-                        // payload = e['payload']['description'];
-                      } else if (e['type'] == 'PullRequestEvent') {
-                        payload = e['payload']['pull_request']['title'];
-                      }
+                      var payload = e['type'];
+                      // if (e['type'] == 'IssueCommentEvent') {
+                      //   payload =
+                      //  e['payload']['issue']['labels'][0]['description'];
+                      // } else if (e['type'] == 'PushEvent') {
+                      //   payload = e['payload']['commits'][0]['url'];
+                      // } else if (e['type'] == 'CreateEvent') {
+                      //   payload = e['payload']?['description'] ?? 'error';
+                      // } else if (e['type'] == 'PullRequestEvent') {
+                      //   payload = e['payload']['pull_request']['title'];
+                      // }
                       return Card(
                         child: ListTile(
                           leading: CircleAvatar(
