@@ -16,14 +16,11 @@ class UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: username,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: Image.network(
-          avatarUrl,
-          height: height,
-        ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: Image.network(
+        avatarUrl,
+        height: height,
       ),
     );
   }
