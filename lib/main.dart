@@ -65,36 +65,40 @@ class MyApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final useUserLogin = useState<String>('rrousselGit');
+    final useUserLogin = useState<String>(
+        ref.watch(boxProvider).get('userLogin') ?? 'rrousselGit');
     final useGetTrendingRepos = useMemoizedFuture(
       () => ghTrendingRepositories(
         spokenLanguageCode: 'en',
         dateRange: GhTrendDateRange.today,
-        proxy: 'https://cors.bridged.cc/',
+        proxy: kIsWeb ? 'https://cors.bridged.cc/' : '',
       ),
     );
-    final useGetUserDetailsFuture = useMemoizedFuture(() async {
-      Future<Response> result;
-      if (ref.watch(dioProvider).options.headers.containsKey('Authorization')) {
-        result = ref.watch(dioProvider).get('/user');
-        await result
-            .then((value) async => useUserLogin.value = value.data['login']);
-      } else {
-        result = Future.value(
-          Response(
-            requestOptions: RequestOptions(path: ''),
-            data: {
-              'login': useUserLogin.value,
-              'avatar_url':
-                  'https://avatars.githubusercontent.com/in/15368?s=64&v=4',
-            },
-          ),
-        );
-      }
-      return result;
-    });
+    final useGetUserDetailsFuture = useMemoizedFuture(
+      () async {
+        return ref
+                .watch(dioProvider)
+                .options
+                .headers
+                .containsKey('Authorization')
+            ? ref.watch(dioProvider).get('/user').then((value) {
+                ref.watch(boxProvider).put('userLogin', value.data['login']);
+                return value;
+              })
+            : Future.value(
+                Response(
+                  requestOptions: RequestOptions(path: ''),
+                  data: {
+                    'login': useUserLogin.value,
+                    'avatar_url':
+                        'https://avatars.githubusercontent.com/in/15368?s=64&v=4',
+                  },
+                ),
+              );
+      },
+    );
     final useGetUserReceivedEventsFuture = useMemoizedFuture(
-      () => ref
+      () async => ref
           .watch(dioProvider)
           .get('/users/${useUserLogin.value}/received_events'),
     );
@@ -228,13 +232,12 @@ class MyApp extends HookConsumerWidget {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          var _activityFeed = CustomScrollView(
+          final _activityFeed = CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
               CupertinoSliverRefreshControl(
                 onRefresh: () => Future<void>.value(
-                  useGetUserReceivedEventsFuture.refresh(),
-                ),
+                    useGetUserReceivedEventsFuture.refresh()),
               ),
               ActivityList(
                 rawFeed: useGetUserReceivedEventsFuture.snapshot.data!.data,
