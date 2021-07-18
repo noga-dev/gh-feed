@@ -13,15 +13,12 @@ class TrendingRepos extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (trendingRepos.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator.adaptive(),
-      );
-    } else {
-      return ListView.builder(
-        itemCount: trendingRepos.length,
-        padding: const EdgeInsets.all(8),
-        itemBuilder: (context, index) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          if (trendingRepos.isEmpty) {
+            return const CircularProgressIndicator.adaptive();
+          }
           Color? cardColor;
           if (trendingRepos[index].programmingLanguageColor == null) {
             cardColor = Theme.of(context).cardColor;
@@ -69,8 +66,9 @@ class TrendingRepos extends StatelessWidget {
             ),
           );
         },
-      );
-    }
+        childCount: trendingRepos.length,
+      ),
+    );
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 // ignore: unused_import
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gaf/providers.dart';
 import 'package:gaf/theme/app_themes.dart';
 import 'package:gaf/widgets/activity_list.dart';
 import 'package:gaf/widgets/requests_left.dart';
@@ -12,9 +13,6 @@ import 'package:gh_trend/gh_trend.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:very_good_analysis/very_good_analysis.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
-final dioProvider = Provider<Dio>((ref) => Dio());
-final boxProvider = Provider<Box>((ref) => Hive.box('sharedPrefsBox'));
 
 Future<void> main() async {
   final container = ProviderContainer();
@@ -54,6 +52,12 @@ Future<void> main() async {
         darkTheme: themeDataDark,
         themeMode: ThemeMode.dark,
         home: const MyApp(),
+        builder: (BuildContext context, Widget? child) => MediaQuery(
+          data: const MediaQueryData(
+            textScaleFactor: .8,
+          ),
+          child: child!,
+        ),
       ),
     ),
   );
@@ -64,9 +68,12 @@ class MyApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final useMemoizerKey = useState<Key>(UniqueKey());
-    final useGetTrendingRepos = useFuture<List<GithubRepoItem>>(
-      useMemoized(() async => await ghTrendingRepositories()),
+    final useNotificationsMemoizerKey = useState<Key>(UniqueKey());
+    final useGetTrendingRepos = useMemoizedFuture(
+      () => ghTrendingRepositories(
+        spokenLanguageCode: 'en',
+        dateRange: GhTrendDateRange.today,
+      ),
     );
     final useUserLogin = useState<String>('rrousselGit');
     final useGetUserDetailsFuture = useFuture<Response>(
@@ -101,7 +108,7 @@ class MyApp extends HookConsumerWidget {
             .watch(dioProvider)
             .get('/users/${useUserLogin.value}/received_events'),
         [
-          useMemoizerKey.value,
+          useNotificationsMemoizerKey.value,
           useUserLogin.value,
           ref.watch(dioProvider).options.headers['Authorization'],
         ],
@@ -110,16 +117,16 @@ class MyApp extends HookConsumerWidget {
 
     if (useGetUserReceivedEventsFuture.connectionState ==
             ConnectionState.waiting &&
-        !useGetUserReceivedEventsFuture.hasData) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+        !useGetUserReceivedEventsFuture.hasData &&
+        useGetTrendingRepos.snapshot.connectionState ==
+            ConnectionState.waiting &&
+        !useGetTrendingRepos.snapshot.hasData) {
+      return const Center(child: CircularProgressIndicator.adaptive());
     }
 
-    if (useGetUserReceivedEventsFuture.hasError) {
-      return Center(
-        child: Text(useGetUserReceivedEventsFuture.error.toString()),
-      );
+    if (useGetUserReceivedEventsFuture.hasError ||
+        useGetTrendingRepos.snapshot.hasError) {
+      return const Center(child: Text('Error'));
     }
 
     final avatar = CircleAvatar(
@@ -169,7 +176,7 @@ class MyApp extends HookConsumerWidget {
                             .headers
                             .remove('Authorization');
                       }
-                      useMemoizerKey.value = UniqueKey();
+                      useNotificationsMemoizerKey.value = UniqueKey();
                     },
                   ),
                 ],
@@ -200,75 +207,71 @@ class MyApp extends HookConsumerWidget {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          if (constraints.maxWidth < 900) {
-            return CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                CupertinoSliverRefreshControl(
-                  onRefresh: () {
-                    useMemoizerKey.value = UniqueKey();
-                    return Future<void>.value(null);
-                  },
-                ),
-                ActivityList(
-                  rawFeed: useGetUserReceivedEventsFuture.data!.data,
-                  childCount:
-                      (useGetUserReceivedEventsFuture.data!.data as List)
-                          .length,
-                ),
-              ],
-            );
-          } else {
-            return Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(
-                        'Activity Feed',
-                        style: Theme.of(context).textTheme.headline6,
-                      ),
-                      Expanded(
-                        child: CustomScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          slivers: [
-                            CupertinoSliverRefreshControl(
-                              onRefresh: () {
-                                useMemoizerKey.value = UniqueKey();
-                                return Future<void>.value(null);
-                              },
+          var _activityFeed = CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              CupertinoSliverRefreshControl(
+                onRefresh: () {
+                  useNotificationsMemoizerKey.value = UniqueKey();
+                  return Future<void>.value(null);
+                },
+              ),
+              ActivityList(
+                rawFeed: useGetUserReceivedEventsFuture.data!.data,
+                childCount:
+                    (useGetUserReceivedEventsFuture.data!.data as List).length,
+              ),
+            ],
+          );
+          return constraints.maxWidth < 900
+              ? _activityFeed
+              : Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: Text(
+                              'Activity Feed',
+                              style: Theme.of(context).textTheme.headline6,
                             ),
-                            ActivityList(
-                              rawFeed:
-                                  useGetUserReceivedEventsFuture.data!.data,
-                              childCount: (useGetUserReceivedEventsFuture
-                                      .data!.data as List)
-                                  .length,
+                          ),
+                          Expanded(child: _activityFeed),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: Text(
+                              'Trending Repos',
+                              style: Theme.of(context).textTheme.headline6,
                             ),
-                          ],
-                        ),
+                          ),
+                          Expanded(
+                            child: CustomScrollView(
+                              physics: const BouncingScrollPhysics(),
+                              slivers: [
+                                CupertinoSliverRefreshControl(
+                                  onRefresh: () => Future<void>.value(
+                                    useGetTrendingRepos.refresh(),
+                                  ),
+                                ),
+                                TrendingRepos(
+                                  trendingRepos:
+                                      useGetTrendingRepos.snapshot.data ?? [],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(
-                        'Daily Trending Repos',
-                        style: Theme.of(context).textTheme.headline6,
-                      ),
-                      Expanded(
-                        child: TrendingRepos(
-                          trendingRepos: useGetTrendingRepos.data ?? [],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          }
+                    ),
+                  ],
+                );
         },
       ),
     );
