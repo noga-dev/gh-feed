@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 // ignore: unused_import
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -14,6 +15,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:very_good_analysis/very_good_analysis.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+const _secretKey = 'secretKey';
 Future<void> main() async {
   final container = ProviderContainer();
   // TODO add encryption
@@ -23,11 +25,9 @@ Future<void> main() async {
   // await dotenv.load(fileName: 'data.env');
   // final ghAuthKey = dotenv.env['GH_SECRET_KEY'];
 
-  final dioRequestHeaders = {
-    'Accept': 'application/vnd.github.v3+json',
-  };
+  final dioRequestHeaders = {'Accept': 'application/vnd.github.v3+json'};
 
-  final ghAuthKey = container.read(boxProvider).get('secretKey');
+  final ghAuthKey = container.read(boxProvider).get(_secretKey);
 
   if (ghAuthKey != null) {
     dioRequestHeaders.putIfAbsent(
@@ -53,9 +53,7 @@ Future<void> main() async {
         themeMode: ThemeMode.dark,
         home: const MyApp(),
         builder: (BuildContext context, Widget? child) => MediaQuery(
-          data: const MediaQueryData(
-            textScaleFactor: .8,
-          ),
+          data: const MediaQueryData(textScaleFactor: .8),
           child: child!,
         ),
       ),
@@ -68,63 +66,49 @@ class MyApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final useNotificationsMemoizerKey = useState<Key>(UniqueKey());
+    final useUserLogin = useState<String>('rrousselGit');
     final useGetTrendingRepos = useMemoizedFuture(
       () => ghTrendingRepositories(
         spokenLanguageCode: 'en',
         dateRange: GhTrendDateRange.today,
       ),
     );
-    final useUserLogin = useState<String>('rrousselGit');
-    final useGetUserDetailsFuture = useFuture<Response>(
-      useMemoized(
-        () async {
-          Response result;
-          if (ref
-              .watch(dioProvider)
-              .options
-              .headers
-              .containsKey('Authorization')) {
-            result = await ref.watch(dioProvider).get('/user');
-            useUserLogin.value = result.data['login'];
-          } else {
-            result = Response(
-              requestOptions: RequestOptions(path: ''),
-              data: {
-                'login': useUserLogin.value,
-                'avatar_url':
-                    'https://avatars.githubusercontent.com/in/15368?s=64&v=4',
-              },
-            );
-          }
-          return result;
-        },
-        [ref.watch(dioProvider).options.headers['Authorization']],
-      ),
-    );
-    final useGetUserReceivedEventsFuture = useFuture<Response>(
-      useMemoized(
-        () => ref
-            .watch(dioProvider)
-            .get('/users/${useUserLogin.value}/received_events'),
-        [
-          useNotificationsMemoizerKey.value,
-          useUserLogin.value,
-          ref.watch(dioProvider).options.headers['Authorization'],
-        ],
-      ),
+    final useGetUserDetailsFuture = useMemoizedFuture(() async {
+      Future<Response> result;
+      if (ref.watch(dioProvider).options.headers.containsKey('Authorization')) {
+        result = ref.watch(dioProvider).get('/user');
+        await result
+            .then((value) async => useUserLogin.value = value.data['login']);
+      } else {
+        result = Future.value(
+          Response(
+            requestOptions: RequestOptions(path: ''),
+            data: {
+              'login': useUserLogin.value,
+              'avatar_url':
+                  'https://avatars.githubusercontent.com/in/15368?s=64&v=4',
+            },
+          ),
+        );
+      }
+      return result;
+    });
+    final useGetUserReceivedEventsFuture = useMemoizedFuture(
+      () => ref
+          .watch(dioProvider)
+          .get('/users/${useUserLogin.value}/received_events'),
     );
 
-    if (useGetUserReceivedEventsFuture.connectionState ==
+    if (useGetUserReceivedEventsFuture.snapshot.connectionState ==
             ConnectionState.waiting &&
-        !useGetUserReceivedEventsFuture.hasData &&
+        !useGetUserReceivedEventsFuture.snapshot.hasData &&
         useGetTrendingRepos.snapshot.connectionState ==
             ConnectionState.waiting &&
         !useGetTrendingRepos.snapshot.hasData) {
       return const Center(child: CircularProgressIndicator.adaptive());
     }
 
-    if (useGetUserReceivedEventsFuture.hasError ||
+    if (useGetUserReceivedEventsFuture.snapshot.hasError ||
         useGetTrendingRepos.snapshot.hasError) {
       return const Center(child: Text('Error'));
     }
@@ -132,14 +116,35 @@ class MyApp extends HookConsumerWidget {
     final avatar = CircleAvatar(
       radius: 40,
       backgroundImage: NetworkImage(
-        useGetUserDetailsFuture.hasData
-            ? useGetUserDetailsFuture.data!.data['avatar_url']
+        useGetUserDetailsFuture.snapshot.hasData
+            ? useGetUserDetailsFuture.snapshot.data!.data['avatar_url']
             : 'https://github.com/identicons/jasonlong.png',
       ),
     );
 
     return Scaffold(
       drawerEdgeDragWidth: 32,
+      endDrawer: kDebugMode
+          ? Drawer(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      unawaited(ref.watch(boxProvider).delete(_secretKey));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text(
+                        'Key Reset Successfully',
+                        textAlign: TextAlign.center,
+                        textScaleFactor: 2,
+                      )));
+                    },
+                    child: const Text('Reset key'),
+                  ),
+                ],
+              ),
+            )
+          : null,
       drawer: Drawer(
         child: Column(
           children: [
@@ -168,7 +173,9 @@ class MyApp extends HookConsumerWidget {
                               (value) => 'token $val',
                               ifAbsent: () => 'token $val',
                             );
-                        unawaited(ref.watch(boxProvider).put('secretKey', val));
+                        unawaited(ref.watch(boxProvider).put(_secretKey, val));
+                        useGetUserDetailsFuture.refresh();
+                        useGetUserReceivedEventsFuture.refresh();
                       } on DioError {
                         ref
                             .watch(dioProvider)
@@ -176,7 +183,6 @@ class MyApp extends HookConsumerWidget {
                             .headers
                             .remove('Authorization');
                       }
-                      useNotificationsMemoizerKey.value = UniqueKey();
                     },
                   ),
                 ],
@@ -199,7 +205,7 @@ class MyApp extends HookConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             RequestsLeft(
-              count: useGetUserReceivedEventsFuture.data!.headers
+              count: useGetUserReceivedEventsFuture.snapshot.data!.headers
                   .value('x-ratelimit-remaining')!,
             ),
           ],
@@ -211,15 +217,15 @@ class MyApp extends HookConsumerWidget {
             physics: const BouncingScrollPhysics(),
             slivers: [
               CupertinoSliverRefreshControl(
-                onRefresh: () {
-                  useNotificationsMemoizerKey.value = UniqueKey();
-                  return Future<void>.value(null);
-                },
+                onRefresh: () => Future<void>.value(
+                  useGetUserReceivedEventsFuture.refresh(),
+                ),
               ),
               ActivityList(
-                rawFeed: useGetUserReceivedEventsFuture.data!.data,
+                rawFeed: useGetUserReceivedEventsFuture.snapshot.data!.data,
                 childCount:
-                    (useGetUserReceivedEventsFuture.data!.data as List).length,
+                    (useGetUserReceivedEventsFuture.snapshot.data!.data as List)
+                        .length,
               ),
             ],
           );
