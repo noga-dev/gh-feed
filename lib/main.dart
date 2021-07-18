@@ -16,6 +16,11 @@ import 'package:very_good_analysis/very_good_analysis.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 const _secretKey = 'secretKey';
+const _userLoginKey = 'userLogin';
+const _defaultUserLogin = 'rrousselGit';
+const _defaultAvatar =
+    'https://avatars.githubusercontent.com/in/15368?s=64&v=4';
+
 Future<void> main() async {
   final container = ProviderContainer();
   // TODO add encryption
@@ -66,7 +71,7 @@ class MyApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final useUserLogin = useState<String>(
-        ref.watch(boxProvider).get('userLogin') ?? 'rrousselGit');
+        ref.watch(boxProvider).get(_userLoginKey) ?? _defaultUserLogin);
     final useGetTrendingRepos = useMemoizedFuture(
       () => ghTrendingRepositories(
         spokenLanguageCode: 'en',
@@ -82,7 +87,7 @@ class MyApp extends HookConsumerWidget {
                 .headers
                 .containsKey('Authorization')
             ? ref.watch(dioProvider).get('/user').then((value) {
-                ref.watch(boxProvider).put('userLogin', value.data['login']);
+                ref.watch(boxProvider).put(_userLoginKey, value.data['login']);
                 return value;
               })
             : Future.value(
@@ -90,8 +95,7 @@ class MyApp extends HookConsumerWidget {
                   requestOptions: RequestOptions(path: ''),
                   data: {
                     'login': useUserLogin.value,
-                    'avatar_url':
-                        'https://avatars.githubusercontent.com/in/15368?s=64&v=4',
+                    'avatar_url': _defaultAvatar,
                   },
                 ),
               );
@@ -102,6 +106,8 @@ class MyApp extends HookConsumerWidget {
           .watch(dioProvider)
           .get('/users/${useUserLogin.value}/received_events'),
     );
+    final useGetPublicEvents =
+        useMemoizedFuture(() => ref.watch(dioProvider).get('/events'));
 
     if (useGetUserReceivedEventsFuture.snapshot.connectionState ==
             ConnectionState.waiting &&
@@ -122,7 +128,7 @@ class MyApp extends HookConsumerWidget {
       backgroundImage: NetworkImage(
         useGetUserDetailsFuture.snapshot.hasData
             ? useGetUserDetailsFuture.snapshot.data!.data['avatar_url']
-            : 'https://github.com/identicons/jasonlong.png',
+            : _defaultAvatar,
       ),
     );
 
@@ -135,18 +141,18 @@ class MyApp extends HookConsumerWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () async {
-                      unawaited(ref.watch(boxProvider).delete(_secretKey));
+                      unawaited(ref.watch(boxProvider).clear());
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                            'Key Reset!',
+                            'Box data was reset!!!',
                             textAlign: TextAlign.center,
                             textScaleFactor: 2,
                           ),
                         ),
                       );
                     },
-                    child: const Text('Reset key'),
+                    child: const Text('RESET BOX DATA'),
                   ),
                 ],
               ),
@@ -220,21 +226,54 @@ class MyApp extends HookConsumerWidget {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final _activityFeed = CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              CupertinoSliverRefreshControl(
-                onRefresh: () => Future<void>.value(
-                    useGetUserReceivedEventsFuture.refresh()),
-              ),
-              ActivityList(
-                rawFeed: useGetUserReceivedEventsFuture.snapshot.data!.data,
-                childCount:
-                    (useGetUserReceivedEventsFuture.snapshot.data!.data as List)
-                        .length,
-              ),
-            ],
-          );
+          final _activityFeed = (useUserLogin.value != _defaultUserLogin)
+              ? CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    CupertinoSliverRefreshControl(
+                      onRefresh: () => Future<void>.value(
+                        useGetUserReceivedEventsFuture.refresh(),
+                      ),
+                    ),
+                    ActivityList(
+                      rawFeed:
+                          useGetUserReceivedEventsFuture.snapshot.data!.data,
+                      childCount: (useGetUserReceivedEventsFuture
+                              .snapshot.data!.data as List)
+                          .length,
+                    ),
+                  ],
+                )
+              : ListView(
+                  children:
+                      (useGetPublicEvents.snapshot.data!.data as List).map(
+                    (e) {
+                      // IssueCommentEvent
+
+                      var payload = 'error';
+                      if (e['type'] == 'IssueCommentEvent') {
+                        payload = 'test';
+                        e['payload']['issue']['labels'][0]['description'];
+                      } else if (e['type'] == 'PushEvent') {
+                        payload = e['payload']['commits'][0]['url'];
+                      } else if (e['type'] == 'CreateEvent') {
+                        // payload = e['payload']['description'];
+                      } else if (e['type'] == 'PullRequestEvent') {
+                        payload = e['payload']['pull_request']['title'];
+                      }
+                      return Card(
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage:
+                                NetworkImage(e['actor']['avatar_url']),
+                          ),
+                          title: Text(e['repo']['name'] ?? 'error'),
+                          subtitle: Text(payload),
+                        ),
+                      );
+                    },
+                  ).toList(),
+                );
           return constraints.maxWidth < 900
               ? _activityFeed
               : Row(
