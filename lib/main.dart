@@ -132,12 +132,15 @@ class MyApp extends HookConsumerWidget {
                   ElevatedButton(
                     onPressed: () async {
                       unawaited(ref.watch(boxProvider).delete(_secretKey));
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
                           content: Text(
-                        'Key Reset Successfully',
-                        textAlign: TextAlign.center,
-                        textScaleFactor: 2,
-                      )));
+                            'Key Reset!',
+                            textAlign: TextAlign.center,
+                            textScaleFactor: 2,
+                          ),
+                        ),
+                      );
                     },
                     child: const Text('Reset key'),
                   ),
