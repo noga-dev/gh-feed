@@ -60,12 +60,17 @@ class _ActivityListState extends State<ActivityList> {
                           event.repo!.name,
                         ),
                       ),
-                      ListTile(
-                        leading: const Text('Type'),
-                        title: Text(
-                          event.type!,
+                      if (event.type != 'PushEvent' &&
+                          event.type != 'WatchEvent' &&
+                          event.type != 'ForkEvent' &&
+                          event.type != 'ReleaseEvent') ...[
+                        ListTile(
+                          leading: const Text('Type'),
+                          title: Text(
+                            event.type!,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
