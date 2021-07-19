@@ -16,14 +16,8 @@ class EventCard extends StatelessWidget {
     return Column(
       children: [
         title,
-        //const SizedBox(height: 8),
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            8,
-            16,
-            16,
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark

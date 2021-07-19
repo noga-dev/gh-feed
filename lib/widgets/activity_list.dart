@@ -3,6 +3,7 @@ import 'package:gaf/theme/app_themes.dart';
 import 'package:gaf/theme/github_colors.dart';
 import 'package:gaf/widgets/created_at.dart';
 import 'package:gaf/widgets/event_card.dart';
+import 'package:gaf/widgets/event_title.dart';
 import 'package:gaf/widgets/user_avatar.dart';
 import 'package:github/github.dart';
 
@@ -48,15 +49,8 @@ class _ActivityListState extends State<ActivityList> {
               children: [
                 const SizedBox(height: 8),
                 EventCard(
-                  title: ListTile(
-                    leading: UserAvatar(
-                      avatarUrl: event.actor!.avatarUrl!,
-                      username: event.actor!.login!,
-                    ),
-                    title: Text(event.actor!.login!),
-                    trailing: CreatedAt(
-                      timeCreated: event.createdAt!,
-                    ),
+                  title: EventTitle(
+                    event: _events[idx],
                   ),
                   content: Column(
                     children: [
