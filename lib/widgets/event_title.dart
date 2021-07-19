@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gaf/widgets/created_at.dart';
 import 'package:gaf/widgets/user_avatar.dart';
 import 'package:github/github.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class EventTitle extends StatelessWidget {
   const EventTitle({
@@ -13,7 +14,61 @@ class EventTitle extends StatelessWidget {
 
   Widget _buildTitleText(Event event) {
     switch (event.type) {
-      case('ForkEvent'):
+      case 'CreateEvent':
+        final refType = event.payload!['ref_type'];
+        if (refType == 'branch') {
+          final ref = event.payload!['ref'];
+          return RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: event.actor!.login,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(
+                  text: ' created $refType ',
+                ),
+                TextSpan(
+                  style: GoogleFonts.firaCode(),
+                  text: '$ref',
+                ),
+                const TextSpan(
+                  text: ' at ',
+                ),
+                TextSpan(
+                  text: event.repo!.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: event.actor!.login,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const TextSpan(
+                text: ' created ',
+              ),
+              TextSpan(
+                text: event.repo!.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        );
+      case ('ForkEvent'):
         return RichText(
           text: TextSpan(
             children: [
