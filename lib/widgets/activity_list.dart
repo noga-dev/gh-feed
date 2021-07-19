@@ -5,6 +5,7 @@ import 'package:gaf/widgets/event_card.dart';
 import 'package:gaf/widgets/event_title.dart';
 import 'package:gaf/widgets/repo_preview.dart';
 import 'package:github/github.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ActivityList extends StatelessWidget {
   const ActivityList({
@@ -49,12 +50,32 @@ class ActivityList extends StatelessWidget {
                         if (event.type != 'PushEvent' &&
                             event.type != 'WatchEvent' &&
                             event.type != 'ForkEvent' &&
+                            event.type != 'IssueCommentEvent' &&
                             event.type != 'ReleaseEvent') ...[
                           ListTile(
                             leading: const Text('Type'),
                             title: Text(
                               event.type!,
                             ),
+                          ),
+                        ],
+                        if (event.type == 'IssueCommentEvent') ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              TextButton.icon(
+                                icon: const Icon(Icons.exit_to_app),
+                                label: const Text('View issue'),
+                                onPressed: () async {
+                                  print(event.payload);
+                                  if (await canLaunch(
+                                      event.payload!['issue']['html_url'])) {
+                                    await launch(
+                                        event.payload!['issue']['html_url']);
+                                  }
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ],

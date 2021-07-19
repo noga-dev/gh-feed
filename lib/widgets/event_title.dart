@@ -35,6 +35,38 @@ class EventTitle extends StatelessWidget {
             ],
           ),
         );
+      case 'IssueCommentEvent':
+        final issue = event.payload!['issue'];
+        return RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: event.actor!.login,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const TextSpan(
+                text: ' commented on issue ',
+              ),
+              TextSpan(
+                text: '#${issue['number']}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const TextSpan(
+                text: ' at ',
+              ),
+              TextSpan(
+                text: event.repo!.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        );
       case 'PushEvent':
         final commitsCount = event.payload!['size'];
         final ref = event.payload!['ref'].split('/').last;
