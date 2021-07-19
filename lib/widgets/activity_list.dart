@@ -50,6 +50,7 @@ class ActivityList extends StatelessWidget {
                         if (event.type != 'PushEvent' &&
                             event.type != 'WatchEvent' &&
                             event.type != 'ForkEvent' &&
+                            event.type != 'CreateEvent' &&
                             event.type != 'IssueCommentEvent' &&
                             event.type != 'ReleaseEvent') ...[
                           ListTile(
