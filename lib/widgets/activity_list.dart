@@ -4,6 +4,7 @@ import 'package:gaf/theme/github_colors.dart';
 import 'package:gaf/widgets/created_at.dart';
 import 'package:gaf/widgets/event_card.dart';
 import 'package:gaf/widgets/event_title.dart';
+import 'package:gaf/widgets/repo_preview.dart';
 import 'package:gaf/widgets/user_avatar.dart';
 import 'package:github/github.dart';
 
@@ -54,12 +55,7 @@ class _ActivityListState extends State<ActivityList> {
                   ),
                   content: Column(
                     children: [
-                      ListTile(
-                        leading: const Text('Repo'),
-                        title: Text(
-                          event.repo!.name,
-                        ),
-                      ),
+                      RepoPreview(repoName: event.repo!.name),
                       if (event.type != 'PushEvent' &&
                           event.type != 'WatchEvent' &&
                           event.type != 'ForkEvent' &&
