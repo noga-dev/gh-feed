@@ -14,9 +14,14 @@ class RepoPreview extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final useGetRepoDetails = useMemoizedFuture(() async {
-      return ref.watch(dioProvider).get('/repos/$repoName');
-    });
+    final useGetRepoDetails = useMemoizedFuture(
+        () async => ref.watch(dioProvider).get('/repos/$repoName'));
+    if (!useGetRepoDetails.snapshot.hasData) {
+      return const LinearProgressIndicator();
+    } else if (useGetRepoDetails.snapshot.hasError) {
+      return const Text('Error');
+    }
+
     final repo = Repository.fromJson(useGetRepoDetails.snapshot.data!.data);
     return Column(
       children: [
