@@ -51,6 +51,7 @@ class ActivityList extends StatelessWidget {
                             event.type != 'WatchEvent' &&
                             event.type != 'ForkEvent' &&
                             event.type != 'CreateEvent' &&
+                            event.type != 'PullRequestEvent' &&
                             event.type != 'IssueCommentEvent' &&
                             event.type != 'ReleaseEvent') ...[
                           ListTile(
@@ -68,11 +69,28 @@ class ActivityList extends StatelessWidget {
                                 icon: const Icon(Icons.exit_to_app),
                                 label: const Text('View issue'),
                                 onPressed: () async {
-                                  print(event.payload);
                                   if (await canLaunch(
                                       event.payload!['issue']['html_url'])) {
                                     await launch(
                                         event.payload!['issue']['html_url']);
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                        if (event.type == 'PullRequestEvent') ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              TextButton.icon(
+                                icon: const Icon(Icons.exit_to_app),
+                                label: const Text('View PR'),
+                                onPressed: () async {
+                                  if (await canLaunch(event
+                                      .payload!['pull_request']['html_url'])) {
+                                    await launch(event.payload!['pull_request']
+                                        ['html_url']);
                                   }
                                 },
                               ),

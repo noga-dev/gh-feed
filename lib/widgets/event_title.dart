@@ -122,6 +122,30 @@ class EventTitle extends StatelessWidget {
             ],
           ),
         );
+      case 'PullRequestEvent':
+        final pr = event.payload!['pull_request'];
+        final number = event.payload!['number'];
+        return RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: event.actor!.login,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextSpan(
+                text: ' opened pull request #$number to ',
+              ),
+              TextSpan(
+                text: event.repo!.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            ],
+          ),
+        );
       case 'PushEvent':
         final commitsCount = event.payload!['size'];
         final ref = event.payload!['ref'].split('/').last;
