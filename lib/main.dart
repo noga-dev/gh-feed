@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 // ignore: unused_import
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -41,9 +44,23 @@ Future<void> main() async {
     );
   }
 
-  container.read(dioProvider).options = BaseOptions(
-    baseUrl: 'https://api.github.com/',
-    headers: dioRequestHeaders,
+  container.read(dioProvider)
+    ..options = BaseOptions(
+      baseUrl: 'https://api.github.com/',
+      headers: dioRequestHeaders,
+    )
+    ..interceptors.add(
+      InterceptorsWrapper(
+        onResponse: (response, handler) {
+          container.read(requestsCountProvider).state = int.parse(
+              response.headers.value('x-ratelimit-remaining') ?? '-1');
+          return handler.next(response);
+        },
+      ),
+    );
+
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.black),
   );
 
   runApp(
@@ -56,7 +73,7 @@ Future<void> main() async {
         darkTheme: themeDataDark,
         themeMode: ThemeMode.dark,
         home: const MyApp(),
-        builder: (BuildContext context, Widget? child) => MediaQuery(
+        builder: (context, child) => MediaQuery(
           data: const MediaQueryData(textScaleFactor: .8),
           child: child!,
         ),
@@ -109,18 +126,18 @@ class MyApp extends HookConsumerWidget {
     final useGetPublicEvents =
         useMemoizedFuture(() => ref.watch(dioProvider).get('/events'));
 
-    if (useGetUserReceivedEventsFuture.snapshot.connectionState ==
-            ConnectionState.waiting &&
-        !useGetUserReceivedEventsFuture.snapshot.hasData &&
-        useGetTrendingRepos.snapshot.connectionState ==
-            ConnectionState.waiting &&
+    if (!useGetUserReceivedEventsFuture.snapshot.hasData &&
         !useGetTrendingRepos.snapshot.hasData) {
       return const Center(child: CircularProgressIndicator.adaptive());
     }
 
     if (useGetUserReceivedEventsFuture.snapshot.hasError ||
         useGetTrendingRepos.snapshot.hasError) {
-      return const Center(child: Text('Error'));
+      return Scaffold(
+          body: Center(
+              child: Text(useGetUserReceivedEventsFuture.snapshot.hasError
+                  ? useGetUserReceivedEventsFuture.snapshot.error.toString()
+                  : useGetTrendingRepos.snapshot.error.toString())));
     }
 
     final avatar = CircleAvatar(
@@ -132,208 +149,215 @@ class MyApp extends HookConsumerWidget {
       ),
     );
 
-    return Scaffold(
-      drawerEdgeDragWidth: 32,
-      endDrawer: kDebugMode
-          ? Drawer(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      unawaited(ref.watch(boxProvider).clear());
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Box data was reset!!!',
-                            textAlign: TextAlign.center,
-                            textScaleFactor: 2,
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text('RESET BOX DATA'),
-                  ),
-                ],
-              ),
-            )
-          : null,
-      drawer: Drawer(
-        child: Column(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.teal.shade700,
-              ),
-              child: Center(
+    return Padding(
+      padding: EdgeInsets.only(
+        top: Platform.isAndroid || Platform.isFuchsia || Platform.isIOS
+            ? 22.0
+            : .0,
+      ),
+      child: Scaffold(
+        drawerEdgeDragWidth: 32,
+        endDrawer: kDebugMode
+            ? Drawer(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    avatar,
-                    if (useGetUserDetailsFuture.snapshot.hasData) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        useGetUserDetailsFuture.snapshot.data!.data['login'],
-                        style: Theme.of(context).textTheme.headline6,
-                      ),
-                    ]
+                    ElevatedButton(
+                      onPressed: () async {
+                        unawaited(ref.watch(boxProvider).clear());
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Box data was reset!!!',
+                              textAlign: TextAlign.center,
+                              textScaleFactor: 2,
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text('RESET BOX DATA'),
+                    ),
+                  ],
+                ),
+              )
+            : null,
+        drawer: Drawer(
+          child: Column(
+            children: [
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.teal.shade700,
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      avatar,
+                      if (useGetUserDetailsFuture.snapshot.hasData) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          useGetUserDetailsFuture.snapshot.data!.data['login'],
+                          style: Theme.of(context).textTheme.headline6,
+                        ),
+                      ]
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  children: [
+                    // TODO make optional either username for only public data
+                    // OR key for private as well
+                    // AND add this as a separate option to track other users?
+                    TextField(
+                      decoration: const InputDecoration(hintText: 'Auth Key'),
+                      obscureText: true,
+                      onChanged: (val) async {
+                        try {
+                          ref.watch(dioProvider).options.headers.update(
+                                'Authorization',
+                                (value) => 'token $val',
+                                ifAbsent: () => 'token $val',
+                              );
+                          unawaited(
+                              ref.watch(boxProvider).put(_secretKey, val));
+                          useGetUserDetailsFuture.refresh();
+                          useGetUserReceivedEventsFuture.refresh();
+                        } on DioError {
+                          ref
+                              .watch(dioProvider)
+                              .options
+                              .headers
+                              .remove('Authorization');
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                children: [
-                  // TODO make optional either username for only public data
-                  // OR key for private as well
-                  // AND add this as a separate option to track other users?
-                  TextField(
-                    decoration: const InputDecoration(hintText: 'Auth Key'),
-                    obscureText: true,
-                    onChanged: (val) async {
-                      try {
-                        ref.watch(dioProvider).options.headers.update(
-                              'Authorization',
-                              (value) => 'token $val',
-                              ifAbsent: () => 'token $val',
-                            );
-                        unawaited(ref.watch(boxProvider).put(_secretKey, val));
-                        useGetUserDetailsFuture.refresh();
-                        useGetUserReceivedEventsFuture.refresh();
-                      } on DioError {
-                        ref
-                            .watch(dioProvider)
-                            .options
-                            .headers
-                            .remove('Authorization');
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      appBar: AppBar(
-        leading: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Builder(
-            builder: (context) => IconButton(
-              icon: avatar,
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
+            ],
           ),
         ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            RequestsLeft(
-              count: useGetUserReceivedEventsFuture.snapshot.data!.headers
-                  .value('x-ratelimit-remaining')!,
+        appBar: AppBar(
+          leading: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Builder(
+              builder: (context) => IconButton(
+                icon: avatar,
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
             ),
-          ],
+          ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              RequestsLeft(
+                count: ref.watch(requestsCountProvider).state.toString(),
+              ),
+            ],
+          ),
         ),
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final _activityFeed = (useUserLogin.value != _defaultUserLogin)
-              ? CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    CupertinoSliverRefreshControl(
-                      onRefresh: () => Future<void>.value(
-                        useGetUserReceivedEventsFuture.refresh(),
-                      ),
-                    ),
-                    ActivityList(
-                      rawFeed:
-                          useGetUserReceivedEventsFuture.snapshot.data!.data,
-                      childCount: (useGetUserReceivedEventsFuture
-                              .snapshot.data!.data as List)
-                          .length,
-                    ),
-                  ],
-                )
-              : ListView(
-                  children:
-                      (useGetPublicEvents.snapshot.data!.data as List).map(
-                    (e) {
-                      var payload = e['type'];
-                      // if (e['type'] == 'IssueCommentEvent') {
-                      //   payload =
-                      //  e['payload']['issue']['labels'][0]['description'];
-                      // } else if (e['type'] == 'PushEvent') {
-                      //   payload = e['payload']['commits'][0]['url'];
-                      // } else if (e['type'] == 'CreateEvent') {
-                      //   payload = e['payload']?['description'] ?? 'error';
-                      // } else if (e['type'] == 'PullRequestEvent') {
-                      //   payload = e['payload']['pull_request']['title'];
-                      // }
-                      return Card(
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage:
-                                NetworkImage(e['actor']['avatar_url']),
-                          ),
-                          title: Text(e['repo']['name'] ?? 'error'),
-                          subtitle: Text(payload),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final _activityFeed = (useUserLogin.value != _defaultUserLogin)
+                ? CustomScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                      CupertinoSliverRefreshControl(
+                        onRefresh: () => Future<void>.value(
+                          useGetUserReceivedEventsFuture.refresh(),
                         ),
-                      );
-                    },
-                  ).toList(),
-                );
-          return constraints.maxWidth < 900
-              ? _activityFeed
-              : Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12.0),
-                            child: Text(
-                              'Activity Feed',
-                              style: Theme.of(context).textTheme.headline6,
-                            ),
-                          ),
-                          Expanded(child: _activityFeed),
-                        ],
                       ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12.0),
-                            child: Text(
-                              'Trending Repos',
-                              style: Theme.of(context).textTheme.headline6,
+                      ActivityList(
+                        rawFeed:
+                            useGetUserReceivedEventsFuture.snapshot.data!.data,
+                        childCount: (useGetUserReceivedEventsFuture
+                                .snapshot.data!.data as List)
+                            .length,
+                      ),
+                    ],
+                  )
+                : ListView(
+                    children:
+                        (useGetPublicEvents.snapshot.data!.data as List).map(
+                      (e) {
+                        var payload = e['type'];
+                        // if (e['type'] == 'IssueCommentEvent') {
+                        //   payload =
+                        //  e['payload']['issue']['labels'][0]['description'];
+                        // } else if (e['type'] == 'PushEvent') {
+                        //   payload = e['payload']['commits'][0]['url'];
+                        // } else if (e['type'] == 'CreateEvent') {
+                        //   payload = e['payload']?['description'] ?? 'error';
+                        // } else if (e['type'] == 'PullRequestEvent') {
+                        //   payload = e['payload']['pull_request']['title'];
+                        // }
+                        return Card(
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage:
+                                  NetworkImage(e['actor']['avatar_url']),
                             ),
+                            title: Text(e['repo']['name'] ?? 'error'),
+                            subtitle: Text(payload),
                           ),
-                          Expanded(
-                            child: CustomScrollView(
-                              physics: const BouncingScrollPhysics(),
-                              slivers: [
-                                CupertinoSliverRefreshControl(
-                                  onRefresh: () => Future<void>.value(
-                                    useGetTrendingRepos.refresh(),
+                        );
+                      },
+                    ).toList(),
+                  );
+            return constraints.maxWidth < 900
+                ? _activityFeed
+                : Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12.0),
+                              child: Text(
+                                'Activity Feed',
+                                style: Theme.of(context).textTheme.headline6,
+                              ),
+                            ),
+                            Expanded(child: _activityFeed),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12.0),
+                              child: Text(
+                                'Trending Repos',
+                                style: Theme.of(context).textTheme.headline6,
+                              ),
+                            ),
+                            Expanded(
+                              child: CustomScrollView(
+                                physics: const BouncingScrollPhysics(),
+                                slivers: [
+                                  CupertinoSliverRefreshControl(
+                                    onRefresh: () => Future<void>.value(
+                                      useGetTrendingRepos.refresh(),
+                                    ),
                                   ),
-                                ),
-                                TrendingRepos(
-                                  trendingRepos:
-                                      useGetTrendingRepos.snapshot.data ?? [],
-                                ),
-                              ],
+                                  TrendingRepos(
+                                    trendingRepos:
+                                        useGetTrendingRepos.snapshot.data ?? [],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                );
-        },
+                    ],
+                  );
+          },
+        ),
       ),
     );
   }
