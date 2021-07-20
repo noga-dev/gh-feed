@@ -1,30 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:gaf/providers.dart';
 import 'package:gaf/widgets/user_avatar.dart';
 import 'package:github/github.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class RepoPreview extends HookConsumerWidget {
+class RepoPreview extends StatelessWidget {
   const RepoPreview({
     Key? key,
-    required this.repoName,
+    required this.repo,
   }) : super(key: key);
 
-  final String repoName;
+  final Repository repo;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final useGetRepoDetails = useMemoizedFuture(
-        () async => ref.watch(dioProvider).get('/repos/$repoName'));
-    if (!useGetRepoDetails.snapshot.hasData) {
-      return const LinearProgressIndicator();
-    } else if (useGetRepoDetails.snapshot.hasError) {
-      return const Text('Error');
-    }
-
-    final repo = Repository.fromJson(useGetRepoDetails.snapshot.data!.data);
+  Widget build(BuildContext context) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
@@ -44,13 +33,17 @@ class RepoPreview extends HookConsumerWidget {
                   height: 24,
                 ),
                 const SizedBox(width: 8),
-                Text(repoName),
+                Text(repo.name),
                 const Spacer(),
                 Text(repo.language),
               ],
             ),
             const SizedBox(height: 8),
-            Text(repo.description),
+            Row(
+              children: [
+                Text(repo.description),
+              ],
+            ),
             const SizedBox(height: 8),
             Row(
               children: [

@@ -10,6 +10,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 final dioProvider = Provider<Dio>((ref) => Dio());
 final boxProvider = Provider<Box>((ref) => Hive.box('sharedPrefsBox'));
 
+final requestsCountProvider = StateProvider((ref) => 0);
+
 /// Stores an [AsyncSnapshot] as well as a reference to a function [refresh]
 /// that should re-call the future that was used to generate the [snapshot].
 class MemoizedAsyncSnapshot<T> {

@@ -123,7 +123,6 @@ class EventTitle extends StatelessWidget {
           ),
         );
       case 'PullRequestEvent':
-        final pr = event.payload!['pull_request'];
         final number = event.payload!['number'];
         return RichText(
           text: TextSpan(
