@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gaf/providers.dart';
+import 'package:gaf/settings.dart';
 import 'package:gaf/theme/app_themes.dart';
 import 'package:gaf/widgets/activity_list.dart';
 import 'package:gaf/widgets/feed_filter_dialog.dart';
@@ -19,7 +20,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:very_good_analysis/very_good_analysis.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:gaf/device_utils.dart';
 
 const _secretKey = 'secretKey';
 const _userLoginKey = 'userLogin';
@@ -61,6 +61,10 @@ Future<void> main() async {
         },
       ),
     );
+
+  if (!container.read(boxProvider).containsKey('settings')) {
+    unawaited(container.read(boxProvider).put('settings', Settings().toJson()));
+  }
 
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.black),
@@ -170,20 +174,42 @@ class MyApp extends HookConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(Colors.red),
+                      ),
                       onPressed: () async {
                         unawaited(ref.read(boxProvider).clear());
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              'Box data was reset!!!',
+                              'box cleared',
                               textAlign: TextAlign.center,
                               textScaleFactor: 2,
                             ),
                           ),
                         );
                       },
-                      child: const Text('RESET BOX DATA'),
+                      child: const Text('clear box'),
                     ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await ref.read(boxProvider).delete('settings');
+                        await ref.read(boxProvider).put(
+                              'settings',
+                              Settings().toJson(),
+                            );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'settings deleted',
+                              textAlign: TextAlign.center,
+                              textScaleFactor: 2,
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text('delete settings'),
+                    )
                   ],
                 ),
               )

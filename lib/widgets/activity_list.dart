@@ -25,6 +25,9 @@ class ActivityList extends HookConsumerWidget {
   @override
   Widget build(context, ref) {
     final useRepos = useState(<SliverRepoItem>[]);
+    final useFilteredRepos = useState(<SliverRepoItem>[]);
+    /*TODO P2: for PR, Issue, IssueComment, and Fork events show relevant
+       details instead of repo preview*/
     useEffect(() {
       for (var item in rawFeed) {
         final event = Event.fromJson(item);
@@ -34,12 +37,21 @@ class ActivityList extends HookConsumerWidget {
       }
     });
 
+    if (Settings.fromJson(ref.watch(boxProvider).get('settings'))
+        .filterPushEvents) {
+      useFilteredRepos.value = useRepos.value
+          .where((element) => element.event.type != 'PushEvent')
+          .toList();
+    } else {
+      useFilteredRepos.value = useRepos.value;
+    }
+
     // TODO add animation
     return SliverAnimatedList(
       itemBuilder: (context, idx, anim) {
-        return useRepos.value[idx];
+        return useFilteredRepos.value[idx];
       },
-      initialItemCount: useRepos.value.length,
+      initialItemCount: useFilteredRepos.value.length,
     );
   }
 }
@@ -54,13 +66,6 @@ class SliverRepoItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    /*TODO P2: for PR, Issue, IssueComment, and Fork events show relevant
-       details instead of repo preview*/
-    final filterBox = ref.read(boxProvider);
-    final settingsState =
-        useState(filterBox.get('settings', defaultValue: Settings()));
-    final settings = settingsState.value;
-
     final useGetRepoDetails = useMemoizedFuture(() async {
       if (ref
           .read(reposCacheProvider)

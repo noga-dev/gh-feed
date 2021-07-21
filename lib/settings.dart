@@ -3,11 +3,9 @@ class Settings {
     this.filterPushEvents = false,
   });
 
-  factory Settings.fromJson(Map<String, dynamic> json) {
-    return Settings(
-      filterPushEvents: json['filterPushEvents'],
-    );
-  }
+  factory Settings.fromJson(Map<dynamic, dynamic> json) => Settings(
+        filterPushEvents: json['filterPushEvents'],
+      );
 
   Settings copyWith({bool? filterPushEvents}) {
     return Settings(

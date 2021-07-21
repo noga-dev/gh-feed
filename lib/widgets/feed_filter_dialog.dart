@@ -4,35 +4,38 @@ import 'package:gaf/providers.dart';
 import 'package:gaf/settings.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-Map<String, dynamic> defaults = {
-  'filterPushEvents': false,
-};
+// Map<String, dynamic> defaults = {
+//   'filterPushEvents': false,
+// };
 
 class FeedFilterDialog extends HookConsumerWidget {
   const FeedFilterDialog({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filterBox = ref.read(boxProvider);
-    final settingsState =
-        useState(filterBox.get('settings', defaultValue: defaults));
-    print(settingsState.value);
-    late Settings settings;
-    if (settingsState.value.runtimeType == Settings) {
-      settings = settingsState.value;
-    } else {
-      settings = Settings.fromJson(settingsState.value);
-    }
+    final settingsBox = ref.read(boxProvider);
+    final useSettingsState = useState(
+      Settings.fromJson(settingsBox.get('settings')),
+    );
+
+    // late Settings settings;
+
+    // if (settingsState.value.runtimeType == Settings) {
+    //   settings = settingsState.value;
+    // } else {
+    //   settings = Settings.fromJson(settingsState.value);
+    // }
 
     return SimpleDialog(
       title: const Text('Feed Filters'),
       children: [
         CheckboxListTile(
-          value: settings.filterPushEvents,
+          value: useSettingsState.value.filterPushEvents,
           title: const Text('Filter PushEvents'),
           onChanged: (newValue) {
-            settingsState.value = settings.copyWith(filterPushEvents: newValue);
-            filterBox.put('settings', settings.toJson());
+            useSettingsState.value =
+                useSettingsState.value.copyWith(filterPushEvents: newValue);
+            settingsBox.put('settings', useSettingsState.value.toJson());
           },
         )
       ],
