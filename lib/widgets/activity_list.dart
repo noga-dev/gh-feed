@@ -53,7 +53,7 @@ class SliverRepoItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    /*TODO P2: for PR, Issue, IssueComment, Push, and Fork events show relevant
+    /*TODO P2: for PR, Issue, IssueComment, and Fork events show relevant
        details instead of repo preview*/
     final useGetRepoDetails = useMemoizedFuture(() async {
       if (ref
