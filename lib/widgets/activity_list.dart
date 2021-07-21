@@ -128,27 +128,11 @@ class SliverRepoItem extends HookConsumerWidget {
                     ),
                   )
                 else if (useGetRepoDetails.snapshot.hasError)
-                  SizedBox(
-                    height: RepoPreview.totalPreviewBoxHeight,
-                    child: SingleChildScrollView(
-                      child: RichText(
-                        text: TextSpan(
-                          style: TextStyle(color: Colors.red.shade300),
-                          children: [
-                            TextSpan(
-                              text:
-                                  // ignore: lines_longer_than_80_chars
-                                  'REQUEST -> ${useGetRepoDetails.snapshot.data?.requestOptions ?? 'null'}',
-                            ),
-                            TextSpan(
-                              text:
-                                  // ignore: lines_longer_than_80_chars
-                                  '\nRESPONSE -> ${useGetRepoDetails.snapshot.error.toString()}',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  ErrorPreview(
+                    request: useGetRepoDetails.snapshot.data?.requestOptions
+                            .toString() ??
+                        'null',
+                    error: useGetRepoDetails.snapshot.error.toString(),
                   )
                 else if (!(useGetRepoDetails.snapshot.connectionState ==
                     ConnectionState.done))
@@ -190,6 +174,39 @@ class SliverRepoItem extends HookConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class ErrorPreview extends StatelessWidget {
+  const ErrorPreview({
+    Key? key,
+    required this.request,
+    required this.error,
+  }) : super(key: key);
+
+  final String request;
+  final String error;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: RepoPreview.totalPreviewBoxHeight,
+      child: SingleChildScrollView(
+        child: RichText(
+          text: TextSpan(
+            style: TextStyle(color: Colors.red.shade300),
+            children: [
+              TextSpan(
+                text: 'REQUEST -> $request',
+              ),
+              TextSpan(
+                text: '\nRESPONSE -> $error',
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
