@@ -24,6 +24,8 @@ class ActivityList extends HookConsumerWidget {
   @override
   Widget build(context, ref) {
     final useRepos = useState(<SliverRepoItem>[]);
+    /*TODO P2: for PR, Issue, IssueComment, Push, and Fork events show relevant
+       details instead of repo preview*/
     useEffect(() {
       for (var item in rawFeed) {
         final event = Event.fromJson(item);
