@@ -252,8 +252,8 @@ class MyApp extends HookConsumerWidget {
             child: Builder(
               builder: (context) => IconButton(
                 icon: avatar,
-                //onPressed: () => Scaffold.of(context).openDrawer(),
-                onPressed: () {
+                onPressed: () => Scaffold.of(context).openDrawer(),
+                /*onPressed: () {
                   if (isDesktopDeviceOrWeb) {
                     showDialog(
                       context: context,
@@ -267,7 +267,7 @@ class MyApp extends HookConsumerWidget {
                       builder: (_) => Container(),
                     );
                   }
-                },
+                },*/
               ),
             ),
           ),
@@ -348,7 +348,8 @@ class MyApp extends HookConsumerWidget {
                                     onPressed: () {
                                       showDialog(
                                         context: context,
-                                        builder: (_) => FeedFilterDialog(),
+                                        builder: (_) =>
+                                            const FeedFilterDialog(),
                                       );
                                     },
                                   ),

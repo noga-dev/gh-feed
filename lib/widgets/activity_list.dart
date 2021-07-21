@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gaf/settings.dart';
 import 'package:github/github.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -55,6 +56,11 @@ class SliverRepoItem extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     /*TODO P2: for PR, Issue, IssueComment, and Fork events show relevant
        details instead of repo preview*/
+    final filterBox = ref.read(boxProvider);
+    final settingsState =
+        useState(filterBox.get('settings', defaultValue: Settings()));
+    final settings = settingsState.value;
+
     final useGetRepoDetails = useMemoizedFuture(() async {
       if (ref
           .read(reposCacheProvider)
