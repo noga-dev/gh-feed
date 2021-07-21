@@ -96,6 +96,15 @@ class SliverRepoItem extends HookConsumerWidget {
       return result;
     });
 
+    final settingsBox = ref.read(boxProvider);
+    final useSettingsState = useState(
+      Settings.fromJson(settingsBox.get('settings')),
+    );
+
+    if (event.type == 'PushEvent' && useSettingsState.value.filterPushEvents) {
+      return const SizedBox.shrink();
+    }
+
     return Card(
       color: Theme.of(context).brightness == Brightness.dark
           ? themeDataDark.cardColor
