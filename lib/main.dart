@@ -11,11 +11,12 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gaf/providers.dart';
 import 'package:gaf/theme/app_themes.dart';
 import 'package:gaf/widgets/activity_list.dart';
+import 'package:gaf/widgets/feed_filter_dialog.dart';
 import 'package:gaf/widgets/requests_left.dart';
-import 'package:gaf/widgets/settings_dialog.dart';
 import 'package:gaf/widgets/trending_repos.dart';
 import 'package:gh_trend/gh_trend.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:very_good_analysis/very_good_analysis.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:gaf/device_utils.dart';
@@ -256,7 +257,9 @@ class MyApp extends HookConsumerWidget {
                   if (isDesktopDeviceOrWeb) {
                     showDialog(
                       context: context,
-                      builder: (_) => const SettingsDialog(),
+                      builder: (_) => const SimpleDialog(
+                        title: Text('Settings'),
+                      ),
                     );
                   } else {
                     showModalBottomSheet(
@@ -331,9 +334,25 @@ class MyApp extends HookConsumerWidget {
                           children: [
                             Padding(
                               padding: const EdgeInsets.only(bottom: 12.0),
-                              child: Text(
-                                'Activity Feed',
-                                style: Theme.of(context).textTheme.headline6,
+                              child: Row(
+                                children: [
+                                  const Spacer(),
+                                  Text(
+                                    'Activity Feed',
+                                    style:
+                                        Theme.of(context).textTheme.headline6,
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: const Icon(MdiIcons.filterOutline),
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (_) => FeedFilterDialog(),
+                                      );
+                                    },
+                                  ),
+                                ],
                               ),
                             ),
                             Expanded(child: _activityFeed),
