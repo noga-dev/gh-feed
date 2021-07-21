@@ -12,11 +12,13 @@ import 'package:gaf/providers.dart';
 import 'package:gaf/theme/app_themes.dart';
 import 'package:gaf/widgets/activity_list.dart';
 import 'package:gaf/widgets/requests_left.dart';
+import 'package:gaf/widgets/settings_dialog.dart';
 import 'package:gaf/widgets/trending_repos.dart';
 import 'package:gh_trend/gh_trend.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:very_good_analysis/very_good_analysis.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:gaf/device_utils.dart';
 
 const _secretKey = 'secretKey';
 const _userLoginKey = 'userLogin';
@@ -249,7 +251,20 @@ class MyApp extends HookConsumerWidget {
             child: Builder(
               builder: (context) => IconButton(
                 icon: avatar,
-                onPressed: () => Scaffold.of(context).openDrawer(),
+                //onPressed: () => Scaffold.of(context).openDrawer(),
+                onPressed: () {
+                  if (isDesktopDeviceOrWeb) {
+                    showDialog(
+                      context: context,
+                      builder: (_) => const SettingsDialog(),
+                    );
+                  } else {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (_) => Container(),
+                    );
+                  }
+                },
               ),
             ),
           ),
