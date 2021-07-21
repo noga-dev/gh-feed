@@ -8,8 +8,10 @@ import 'package:github/github.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+const kSharedPrefsBox = 'sharedPrefsBox';
+
 final dioProvider = Provider<Dio>((ref) => Dio());
-final boxProvider = Provider<Box>((ref) => Hive.box('sharedPrefsBox'));
+final boxProvider = Provider<Box>((ref) => Hive.box(kSharedPrefsBox));
 
 final requestsCountProvider = StateProvider<int>((ref) => 0);
 // TODO put and retrieve from box

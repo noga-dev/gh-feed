@@ -28,7 +28,7 @@ Future<void> main() async {
   final container = ProviderContainer();
   // TODO add encryption
   // TODO costly operation -> show splash?
-  await Hive.initFlutter().then((value) => Hive.openBox('sharedPrefsBox'));
+  await Hive.initFlutter().then((value) => Hive.openBox(kSharedPrefsBox));
 
   // await dotenv.load(fileName: 'data.env');
   // final ghAuthKey = dotenv.env['GH_SECRET_KEY'];
@@ -276,9 +276,6 @@ class MyApp extends HookConsumerWidget {
                       ActivityList(
                         rawFeed:
                             useGetUserReceivedEventsFuture.snapshot.data!.data,
-                        childCount: (useGetUserReceivedEventsFuture
-                                .snapshot.data!.data as List)
-                            .length,
                       ),
                     ],
                   )

@@ -3,40 +3,42 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:gaf/theme/app_themes.dart';
-import 'package:gaf/widgets/event_card.dart';
-import 'package:gaf/widgets/event_title.dart';
-import 'package:gaf/widgets/repo_preview.dart';
 import 'package:github/github.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../providers.dart';
+import '../theme/app_themes.dart';
+import 'event_card.dart';
+import 'event_title.dart';
+import 'repo_preview.dart';
 
 class ActivityList extends HookConsumerWidget {
   const ActivityList({
     Key? key,
     required this.rawFeed,
-    required this.childCount,
   }) : super(key: key);
 
   final dynamic rawFeed;
-  final int childCount;
 
   @override
   Widget build(context, ref) {
     final useRepos = useState(<SliverRepoItem>[]);
     useEffect(() {
       for (var item in rawFeed) {
-        useRepos.value.add(SliverRepoItem(event: Event.fromJson(item)));
+        final event = Event.fromJson(item);
+        if (event.payload!.isNotEmpty) {
+          useRepos.value.add(SliverRepoItem(event: event));
+        }
       }
     });
-    // TODO add animaiton
+
+    // TODO add animation
     return SliverAnimatedList(
       itemBuilder: (context, idx, anim) {
         return useRepos.value[idx];
       },
-      initialItemCount: childCount,
+      initialItemCount: useRepos.value.length,
     );
   }
 }
@@ -81,10 +83,6 @@ class SliverRepoItem extends HookConsumerWidget {
       return result;
     });
 
-    if (useGetRepoDetails.snapshot.hasError) {
-      return const Text('Error');
-    }
-
     return Card(
       color: Theme.of(context).brightness == Brightness.dark
           ? themeDataDark.cardColor
@@ -101,28 +99,54 @@ class SliverRepoItem extends HookConsumerWidget {
             ),
             content: Column(
               children: [
-                useGetRepoDetails.snapshot.hasData
-                    ? RepoPreview(
-                        repo: Repository.fromJson(
-                            useGetRepoDetails.snapshot.data!.data),
-                      )
-                    : const SizedBox(
-                        height: RepoPreview.totalPreviewBoxHeight,
-                        child: LinearProgressIndicator(),
-                      ),
-                if (event.type != 'PushEvent' &&
-                    event.type != 'WatchEvent' &&
-                    event.type != 'ForkEvent' &&
-                    event.type != 'CreateEvent' &&
-                    event.type != 'IssueCommentEvent' &&
-                    event.type != 'ReleaseEvent') ...[
-                  ListTile(
-                    leading: const Text('Type'),
-                    title: Text(
-                      event.type!,
+                if (useGetRepoDetails.snapshot.hasData)
+                  RepoPreview(
+                    repo: Repository.fromJson(
+                      useGetRepoDetails.snapshot.data!.data,
                     ),
+                  )
+                else if (useGetRepoDetails.snapshot.hasError)
+                  SizedBox(
+                    height: RepoPreview.totalPreviewBoxHeight,
+                    child: SingleChildScrollView(
+                      child: RichText(
+                        text: TextSpan(
+                          style: TextStyle(color: Colors.red.shade300),
+                          children: [
+                            TextSpan(
+                              text:
+                                  // ignore: lines_longer_than_80_chars
+                                  'REQUEST -> ${useGetRepoDetails.snapshot.data?.requestOptions ?? 'null'}',
+                            ),
+                            TextSpan(
+                              text:
+                                  // ignore: lines_longer_than_80_chars
+                                  '\nRESPONSE -> ${useGetRepoDetails.snapshot.error.toString()}',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                else if (!(useGetRepoDetails.snapshot.connectionState ==
+                    ConnectionState.done))
+                  const SizedBox(
+                    height: RepoPreview.totalPreviewBoxHeight,
+                    child: LinearProgressIndicator(),
                   ),
-                ],
+                // if (event.type != 'PushEvent' &&
+                //     event.type != 'WatchEvent' &&
+                //     event.type != 'ForkEvent' &&
+                //     event.type != 'CreateEvent' &&
+                //     event.type != 'IssueCommentEvent' &&
+                //     event.type != 'ReleaseEvent') ...[
+                //   ListTile(
+                //     leading: const Text('Type'),
+                //     title: Text(
+                //       event.type!,
+                //     ),
+                //   ),
+                // ],
                 if (event.type == 'IssueCommentEvent') ...[
                   const SizedBox(height: 8),
                   Row(

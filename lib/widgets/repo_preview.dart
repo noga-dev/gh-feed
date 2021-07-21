@@ -68,7 +68,7 @@ class RepoPreview extends StatelessWidget {
                 children: [
                   RepoDetailItem(
                     icon: const Icon(Icons.remove_red_eye_outlined),
-                    label: '${repo.watchersCount}',
+                    label: '${repo.subscribersCount}',
                   ),
                   _iconsDivider,
                   RepoDetailItem(
