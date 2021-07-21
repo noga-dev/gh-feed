@@ -4,13 +4,16 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:github/github.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 final dioProvider = Provider<Dio>((ref) => Dio());
 final boxProvider = Provider<Box>((ref) => Hive.box('sharedPrefsBox'));
 
-final requestsCountProvider = StateProvider((ref) => 0);
+final requestsCountProvider = StateProvider<int>((ref) => 0);
+// TODO put and retrieve from box
+final reposCacheProvider = StateProvider<List<Repository>>((ref) => []);
 
 /// Stores an [AsyncSnapshot] as well as a reference to a function [refresh]
 /// that should re-call the future that was used to generate the [snapshot].

@@ -88,7 +88,7 @@ class MyApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final useUserLogin = useState<String>(
-        ref.watch(boxProvider).get(_userLoginKey) ?? _defaultUserLogin);
+        ref.read(boxProvider).get(_userLoginKey) ?? _defaultUserLogin);
     final useGetTrendingRepos = useMemoizedFuture(
       () => ghTrendingRepositories(
         spokenLanguageCode: 'en',
@@ -99,12 +99,12 @@ class MyApp extends HookConsumerWidget {
     final useGetUserDetailsFuture = useMemoizedFuture(
       () async {
         return ref
-                .watch(dioProvider)
+                .read(dioProvider)
                 .options
                 .headers
                 .containsKey('Authorization')
-            ? ref.watch(dioProvider).get('/user').then((value) {
-                ref.watch(boxProvider).put(_userLoginKey, value.data['login']);
+            ? ref.read(dioProvider).get('/user').then((value) {
+                ref.read(boxProvider).put(_userLoginKey, value.data['login']);
                 return value;
               })
             : Future.value(
@@ -120,11 +120,11 @@ class MyApp extends HookConsumerWidget {
     );
     final useGetUserReceivedEventsFuture = useMemoizedFuture(
       () async => ref
-          .watch(dioProvider)
+          .read(dioProvider)
           .get('/users/${useUserLogin.value}/received_events'),
     );
     final useGetPublicEvents =
-        useMemoizedFuture(() => ref.watch(dioProvider).get('/events'));
+        useMemoizedFuture(() => ref.read(dioProvider).get('/events'));
 
     if (!useGetUserReceivedEventsFuture.snapshot.hasData &&
         !useGetTrendingRepos.snapshot.hasData) {
@@ -164,7 +164,7 @@ class MyApp extends HookConsumerWidget {
                   children: [
                     ElevatedButton(
                       onPressed: () async {
-                        unawaited(ref.watch(boxProvider).clear());
+                        unawaited(ref.read(boxProvider).clear());
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
@@ -216,18 +216,17 @@ class MyApp extends HookConsumerWidget {
                       obscureText: true,
                       onChanged: (val) async {
                         try {
-                          ref.watch(dioProvider).options.headers.update(
+                          ref.read(dioProvider).options.headers.update(
                                 'Authorization',
                                 (value) => 'token $val',
                                 ifAbsent: () => 'token $val',
                               );
-                          unawaited(
-                              ref.watch(boxProvider).put(_secretKey, val));
+                          unawaited(ref.read(boxProvider).put(_secretKey, val));
                           useGetUserDetailsFuture.refresh();
                           useGetUserReceivedEventsFuture.refresh();
                         } on DioError {
                           ref
-                              .watch(dioProvider)
+                              .read(dioProvider)
                               .options
                               .headers
                               .remove('Authorization');
