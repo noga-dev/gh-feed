@@ -150,11 +150,14 @@ class MyApp extends HookConsumerWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.only(
-        top:
-            kIsWeb || Platform.isLinux || Platform.isMacOS || Platform.isWindows
-                ? .0
-                : 22.0,
+      // ignore: prefer_const_constructors
+      padding: EdgeInsets.only(
+        top: (kIsWeb || // keep kIsWeb first due to bug
+                Platform.isLinux ||
+                Platform.isMacOS ||
+                Platform.isWindows)
+            ? .0
+            : 22.0,
       ),
       child: Scaffold(
         drawerEdgeDragWidth: 32,

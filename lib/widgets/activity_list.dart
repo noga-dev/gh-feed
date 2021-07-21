@@ -31,16 +31,12 @@ class ActivityList extends HookConsumerWidget {
         useRepos.value.add(SliverRepoItem(event: Event.fromJson(item)));
       }
     });
-
+    // TODO add animaiton
     return SliverAnimatedList(
       itemBuilder: (context, idx, anim) {
         return useRepos.value[idx];
       },
       initialItemCount: childCount,
-      // delegate: SliverChildBuilderDelegate(
-      //   (context, idx) => ,
-      //   childCount: childCount,
-      // ),
     );
   }
 }
