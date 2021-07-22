@@ -13,10 +13,10 @@ import 'package:very_good_analysis/very_good_analysis.dart';
 import '../../utils/common.dart';
 import '../../utils/providers.dart';
 import '../../utils/settings.dart';
-import '../../widgets/trending_repos.dart';
 import '../widgets/activity_list.dart';
 import '../widgets/feed_filter_dialog.dart';
 import '../widgets/requests_left.dart';
+import '../widgets/trending_repos.dart';
 
 class MyApp extends HookConsumerWidget {
   const MyApp({Key? key}) : super(key: key);
