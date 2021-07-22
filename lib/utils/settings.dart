@@ -1,12 +1,16 @@
+const _kFilterPushEvents = 'filterPushEvents';
+const _kFilterDeleteEvents = 'filterDeleteEvents';
+const _defaultBoolState = false;
+
 class Settings {
   Settings({
-    this.filterPushEvents = false,
-    this.filterDeleteEvents = false,
+    this.filterPushEvents = _defaultBoolState,
+    this.filterDeleteEvents = _defaultBoolState,
   });
 
   factory Settings.fromJson(Map<dynamic, dynamic> json) => Settings(
-        filterPushEvents: json['filterPushEvents'] ?? false,
-        filterDeleteEvents: json['filterDeleteEvents'] ?? false,
+        filterPushEvents: json[_kFilterPushEvents] ?? _defaultBoolState,
+        filterDeleteEvents: json[_kFilterDeleteEvents] ?? _defaultBoolState,
       );
 
   Settings copyWith({
@@ -23,7 +27,7 @@ class Settings {
   final bool filterDeleteEvents;
 
   Map<String, dynamic> toJson() => {
-        'filterPushEvents': filterPushEvents,
-        'filterDeleteEvents': filterDeleteEvents,
+        _kFilterPushEvents: filterPushEvents,
+        _kFilterDeleteEvents: filterDeleteEvents,
       };
 }
