@@ -45,13 +45,14 @@ class ActivityList extends HookConsumerWidget {
       ),
     );
 
+    // TODO fix repo itemCount adding instead of setting
     if (Settings.fromJson(useSettingsListener.get(kBoxKeySettings))
         .filterPushEvents) {
       useFilteredRepos.value = useRepos.value
           .where((element) => element.event.type != 'PushEvent')
           .toList();
     } else {
-      useFilteredRepos.value = useRepos.value;
+      useFilteredRepos.value = useRepos.value.toList();
     }
 
     // TODO add animation
@@ -59,7 +60,7 @@ class ActivityList extends HookConsumerWidget {
       itemBuilder: (context, idx, anim) {
         return useFilteredRepos.value[idx];
       },
-      initialItemCount: useFilteredRepos.value.length,
+      initialItemCount: useRepos.value.length,
     );
   }
 }
