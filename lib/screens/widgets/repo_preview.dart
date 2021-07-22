@@ -26,76 +26,73 @@ class RepoPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: totalPreviewBoxHeight,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: () async {
-            if (await canLaunch(repo.htmlUrl)) {
-              await launch(repo.htmlUrl);
-            }
-          },
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  UserAvatar(
-                    avatarUrl: repo.owner!.avatarUrl,
-                    username: repo.owner!.login,
-                    height: 24,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () async {
+          if (await canLaunch(repo.htmlUrl)) {
+            await launch(repo.htmlUrl);
+          }
+        },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                UserAvatar(
+                  avatarUrl: repo.owner!.avatarUrl,
+                  username: repo.owner!.login,
+                  height: 24,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  repo.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    repo.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                ),
+                const Spacer(),
+                Text(repo.language),
+              ],
+            ),
+            _horizontalDivider,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    repo.description,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const Spacer(),
-                  Text(repo.language),
-                ],
-              ),
-              _horizontalDivider,
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      repo.description,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              _horizontalDivider,
-              Row(
-                children: [
-                  RepoDetailItem(
-                    icon: const Icon(Icons.remove_red_eye_outlined),
-                    label: '${repo.subscribersCount}',
-                  ),
-                  _iconsDivider,
-                  RepoDetailItem(
-                    icon: const Icon(Icons.star_border),
-                    label: '${repo.stargazersCount}',
-                  ),
-                  _iconsDivider,
-                  RepoDetailItem(
-                    icon: const Icon(MdiIcons.sourceFork),
-                    label: '${repo.forksCount}',
-                  ),
-                  _iconsDivider,
-                  RepoDetailItem(
-                    icon: const Icon(Icons.info_outline),
-                    label: '${repo.openIssuesCount}',
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+            _horizontalDivider,
+            Row(
+              children: [
+                RepoDetailItem(
+                  icon: const Icon(Icons.remove_red_eye_outlined),
+                  label: '${repo.subscribersCount}',
+                ),
+                _iconsDivider,
+                RepoDetailItem(
+                  icon: const Icon(Icons.star_border),
+                  label: '${repo.stargazersCount}',
+                ),
+                _iconsDivider,
+                RepoDetailItem(
+                  icon: const Icon(MdiIcons.sourceFork),
+                  label: '${repo.forksCount}',
+                ),
+                _iconsDivider,
+                RepoDetailItem(
+                  icon: const Icon(Icons.info_outline),
+                  label: '${repo.openIssuesCount}',
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
