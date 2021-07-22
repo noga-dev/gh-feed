@@ -13,6 +13,8 @@ import 'common.dart';
 final dioProvider = Provider<Dio>((ref) => Dio());
 final boxProvider = Provider<Box>((ref) => Hive.box(kBoxSharedPrefs));
 
+final userProvider = Provider<User>((ref) => User());
+
 // TODO put and retrieve from box
 final reposCacheProvider = StateProvider<List<Repository>>((ref) => []);
 final requestsCountProvider = StateProvider<int>((ref) => 0);
