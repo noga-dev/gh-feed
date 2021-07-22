@@ -79,7 +79,6 @@ class MyApp extends HookConsumerWidget {
     }
 
     final avatar = CircleAvatar(
-      radius: 40,
       backgroundImage: NetworkImage(
         useGetUserDetailsFuture.snapshot.hasData
             ? useGetUserDetailsFuture.snapshot.data!.data['avatar_url']
@@ -197,7 +196,7 @@ class MyApp extends HookConsumerWidget {
       ),
       appBar: AppBar(
         leading: Padding(
-          padding: const EdgeInsets.all(10.0),
+          padding: const EdgeInsets.all(4.0),
           child: Builder(
             builder: (context) => IconButton(
               icon: avatar,

@@ -28,10 +28,12 @@ class RepoPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      child: GestureDetector(
+      child: InkWell(
         onTap: () async {
           if (await canLaunch(repo.htmlUrl)) {
             await launch(repo.htmlUrl);
+          } else {
+            print('cannot launch');
           }
         },
         child: Column(
