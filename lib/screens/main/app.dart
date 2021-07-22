@@ -5,7 +5,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gaf/screens/widgets/menu_bottom_sheet.dart';
 import 'package:gh_trend/gh_trend.dart';
+import 'package:github/github.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:very_good_analysis/very_good_analysis.dart';
@@ -202,7 +204,9 @@ class MyApp extends HookConsumerWidget {
               icon: avatar,
               onPressed: () => Scaffold.of(context).openDrawer(),
               /*onPressed: () {
-                if (isDesktopDeviceOrWeb) {
+                final screenSize = getSize(context);
+                if (screenSize == ScreenSize.large ||
+                    screenSize == ScreenSize.extraLarge) {
                   showDialog(
                     context: context,
                     builder: (_) => const SimpleDialog(
@@ -212,21 +216,25 @@ class MyApp extends HookConsumerWidget {
                 } else {
                   showModalBottomSheet(
                     context: context,
-                    builder: (_) => Container(),
+                    builder: (_) => MenuBottomSheet(
+                      currentUser: User.fromJson(
+                          useGetUserDetailsFuture.snapshot.data!.data),
+                    ),
                   );
                 }
               },*/
             ),
           ),
         ),
-        title: Row(
+        title: Text('Activity Feed'),
+        /*title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             RequestsLeft(
               count: ref.watch(requestsCountProvider).state.toString(),
             ),
           ],
-        ),
+        ),*/
         actions: [
           IconButton(
             icon: const Icon(MdiIcons.filterOutline),
@@ -261,8 +269,8 @@ class MyApp extends HookConsumerWidget {
                     SliverPadding(
                       padding: const EdgeInsets.all(8.0),
                       sliver: ActivityList(
-                        rawFeed: useGetUserReceivedEventsFuture
-                            .snapshot.data!.data,
+                        rawFeed:
+                            useGetUserReceivedEventsFuture.snapshot.data!.data,
                       ),
                     ),
                   ],
@@ -337,8 +345,7 @@ class MyApp extends HookConsumerWidget {
                                   padding: const EdgeInsets.all(8),
                                   sliver: TrendingRepos(
                                     trendingRepos:
-                                        useGetTrendingRepos.snapshot.data ??
-                                            [],
+                                        useGetTrendingRepos.snapshot.data ?? [],
                                   ),
                                 ),
                               ],

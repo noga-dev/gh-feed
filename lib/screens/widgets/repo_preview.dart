@@ -44,7 +44,6 @@ class RepoPreview extends StatelessWidget {
               children: [
                 UserAvatar(
                   avatarUrl: repo.owner!.avatarUrl,
-                  username: repo.owner!.login,
                   height: 24,
                 ),
                 const SizedBox(width: 8),

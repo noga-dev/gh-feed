@@ -234,7 +234,6 @@ class EventTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: UserAvatar(
-        username: event.actor!.login!,
         avatarUrl: event.actor!.avatarUrl!,
       ),
       title: _buildTitleText(event),
