@@ -87,281 +87,270 @@ class MyApp extends HookConsumerWidget {
       ),
     );
 
-    return Padding(
-      // ignore: prefer_const_constructors
-      padding: EdgeInsets.only(
-        top: (kIsWeb || // keep kIsWeb first due to bug
-                Platform.isLinux ||
-                Platform.isMacOS ||
-                Platform.isWindows)
-            ? .0
-            : 22.0,
-      ),
-      child: Scaffold(
-        drawerEdgeDragWidth: 32,
-        endDrawer: kDebugMode
-            ? Drawer(
+    return Scaffold(
+      drawerEdgeDragWidth: 32,
+      endDrawer: kDebugMode
+          ? Drawer(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.red),
+                    ),
+                    onPressed: () async {
+                      unawaited(ref.read(boxProvider).clear());
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'box cleared',
+                            textAlign: TextAlign.center,
+                            textScaleFactor: 2,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('clear box'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await ref.read(boxProvider).delete(kBoxKeySettings);
+                      await ref.read(boxProvider).put(
+                            kBoxKeySettings,
+                            Settings().toJson(),
+                          );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'settings deleted',
+                            textAlign: TextAlign.center,
+                            textScaleFactor: 2,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('delete settings'),
+                  )
+                ],
+              ),
+            )
+          : null,
+      drawer: Drawer(
+        child: Column(
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.teal.shade700,
+              ),
+              child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.red),
+                    avatar,
+                    if (useGetUserDetailsFuture.snapshot.hasData) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        useGetUserDetailsFuture.snapshot.data!.data['login'],
+                        style: Theme.of(context).textTheme.headline6,
                       ),
-                      onPressed: () async {
-                        unawaited(ref.read(boxProvider).clear());
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'box cleared',
-                              textAlign: TextAlign.center,
-                              textScaleFactor: 2,
-                            ),
-                          ),
-                        );
-                      },
-                      child: const Text('clear box'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        await ref.read(boxProvider).delete(kBoxKeySettings);
-                        await ref.read(boxProvider).put(
-                              kBoxKeySettings,
-                              Settings().toJson(),
+                    ]
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                children: [
+                  // TODO make optional either username for only public data
+                  // OR key for private as well
+                  // AND add this as a separate option to track other users?
+                  TextField(
+                    decoration: const InputDecoration(hintText: 'Auth Key'),
+                    obscureText: true,
+                    onChanged: (val) async {
+                      try {
+                        ref.read(dioProvider).options.headers.update(
+                              'Authorization',
+                              (value) => 'token $val',
+                              ifAbsent: () => 'token $val',
                             );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'settings deleted',
-                              textAlign: TextAlign.center,
-                              textScaleFactor: 2,
-                            ),
-                          ),
+                        unawaited(
+                          ref.read(boxProvider).put(kBoxKeySecretApi, val),
                         );
-                      },
-                      child: const Text('delete settings'),
-                    )
-                  ],
-                ),
-              )
-            : null,
-        drawer: Drawer(
-          child: Column(
-            children: [
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Colors.teal.shade700,
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      avatar,
-                      if (useGetUserDetailsFuture.snapshot.hasData) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          useGetUserDetailsFuture.snapshot.data!.data['login'],
-                          style: Theme.of(context).textTheme.headline6,
-                        ),
-                      ]
-                    ],
+                        useGetUserDetailsFuture.refresh();
+                        useGetUserReceivedEventsFuture.refresh();
+                      } on DioError {
+                        ref
+                            .read(dioProvider)
+                            .options
+                            .headers
+                            .remove('Authorization');
+                      }
+                    },
                   ),
-                ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children: [
-                    // TODO make optional either username for only public data
-                    // OR key for private as well
-                    // AND add this as a separate option to track other users?
-                    TextField(
-                      decoration: const InputDecoration(hintText: 'Auth Key'),
-                      obscureText: true,
-                      onChanged: (val) async {
-                        try {
-                          ref.read(dioProvider).options.headers.update(
-                                'Authorization',
-                                (value) => 'token $val',
-                                ifAbsent: () => 'token $val',
-                              );
-                          unawaited(
-                            ref.read(boxProvider).put(kBoxKeySecretApi, val),
-                          );
-                          useGetUserDetailsFuture.refresh();
-                          useGetUserReceivedEventsFuture.refresh();
-                        } on DioError {
-                          ref
-                              .read(dioProvider)
-                              .options
-                              .headers
-                              .remove('Authorization');
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        appBar: AppBar(
-          leading: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Builder(
-              builder: (context) => IconButton(
-                icon: avatar,
-                onPressed: () => Scaffold.of(context).openDrawer(),
-                /*onPressed: () {
-                  if (isDesktopDeviceOrWeb) {
-                    showDialog(
-                      context: context,
-                      builder: (_) => const SimpleDialog(
-                        title: Text('Settings'),
-                      ),
-                    );
-                  } else {
-                    showModalBottomSheet(
-                      context: context,
-                      builder: (_) => Container(),
-                    );
-                  }
-                },*/
-              ),
-            ),
-          ),
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              RequestsLeft(
-                count: ref.watch(requestsCountProvider).state.toString(),
-              ),
-            ],
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(MdiIcons.filterOutline),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (_) => const FeedFilterDialog(),
-                );
-              },
-            ),
-            Builder(
-              builder: (context) {
-                return IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () => Scaffold.of(context).openEndDrawer(),
-                );
-              },
             ),
           ],
         ),
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            final _activityFeed = (useUserLogin.value != defaultUserLogin)
-                ? CustomScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    slivers: [
-                      CupertinoSliverRefreshControl(
-                        onRefresh: () => Future<void>.value(
-                          useGetUserReceivedEventsFuture.refresh(),
-                        ),
-                      ),
-                      SliverPadding(
-                        padding: const EdgeInsets.all(8.0),
-                        sliver: ActivityList(
-                          rawFeed: useGetUserReceivedEventsFuture
-                              .snapshot.data!.data,
-                        ),
-                      ),
-                    ],
-                  )
-                : ListView(
-                    children:
-                        (useGetPublicEvents.snapshot.data!.data as List).map(
-                      (e) {
-                        var payload = e['type'];
-                        // if (e['type'] == 'IssueCommentEvent') {
-                        //   payload =
-                        //  e['payload']['issue']['labels'][0]['description'];
-                        // } else if (e['type'] == 'PushEvent') {
-                        //   payload = e['payload']['commits'][0]['url'];
-                        // } else if (e['type'] == 'CreateEvent') {
-                        //   payload = e['payload']?['description'] ?? 'error';
-                        // } else if (e['type'] == 'PullRequestEvent') {
-                        //   payload = e['payload']['pull_request']['title'];
-                        // }
-                        return Card(
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage:
-                                  NetworkImage(e['actor']['avatar_url']),
-                            ),
-                            title: Text(e['repo']['name'] ?? 'error'),
-                            subtitle: Text(payload),
-                          ),
-                        );
-                      },
-                    ).toList(),
+      ),
+      appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Builder(
+            builder: (context) => IconButton(
+              icon: avatar,
+              onPressed: () => Scaffold.of(context).openDrawer(),
+              /*onPressed: () {
+                if (isDesktopDeviceOrWeb) {
+                  showDialog(
+                    context: context,
+                    builder: (_) => const SimpleDialog(
+                      title: Text('Settings'),
+                    ),
                   );
-            // mobile, logged in
-            return constraints.maxWidth < 900
-                ? _activityFeed
-                : Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12.0),
-                              child: Text(
-                                'Activity Feed',
-                                style: Theme.of(context).textTheme.headline6,
-                              ),
-                            ),
-                            Expanded(child: _activityFeed),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12.0),
-                              child: Text(
-                                'Trending Repos',
-                                style: Theme.of(context).textTheme.headline6,
-                              ),
-                            ),
-                            Expanded(
-                              child: CustomScrollView(
-                                physics: const BouncingScrollPhysics(),
-                                slivers: [
-                                  CupertinoSliverRefreshControl(
-                                    onRefresh: () => Future<void>.value(
-                                      useGetTrendingRepos.refresh(),
-                                    ),
-                                  ),
-                                  SliverPadding(
-                                    padding: const EdgeInsets.all(8),
-                                    sliver: TrendingRepos(
-                                      trendingRepos:
-                                          useGetTrendingRepos.snapshot.data ??
-                                              [],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                } else {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (_) => Container(),
                   );
-          },
+                }
+              },*/
+            ),
+          ),
         ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            RequestsLeft(
+              count: ref.watch(requestsCountProvider).state.toString(),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(MdiIcons.filterOutline),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => const FeedFilterDialog(),
+              );
+            },
+          ),
+          Builder(
+            builder: (context) {
+              return IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () => Scaffold.of(context).openEndDrawer(),
+              );
+            },
+          ),
+        ],
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final _activityFeed = (useUserLogin.value != defaultUserLogin)
+              ? CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    CupertinoSliverRefreshControl(
+                      onRefresh: () => Future<void>.value(
+                        useGetUserReceivedEventsFuture.refresh(),
+                      ),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.all(8.0),
+                      sliver: ActivityList(
+                        rawFeed: useGetUserReceivedEventsFuture
+                            .snapshot.data!.data,
+                      ),
+                    ),
+                  ],
+                )
+              : ListView(
+                  children:
+                      (useGetPublicEvents.snapshot.data!.data as List).map(
+                    (e) {
+                      var payload = e['type'];
+                      // if (e['type'] == 'IssueCommentEvent') {
+                      //   payload =
+                      //  e['payload']['issue']['labels'][0]['description'];
+                      // } else if (e['type'] == 'PushEvent') {
+                      //   payload = e['payload']['commits'][0]['url'];
+                      // } else if (e['type'] == 'CreateEvent') {
+                      //   payload = e['payload']?['description'] ?? 'error';
+                      // } else if (e['type'] == 'PullRequestEvent') {
+                      //   payload = e['payload']['pull_request']['title'];
+                      // }
+                      return Card(
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage:
+                                NetworkImage(e['actor']['avatar_url']),
+                          ),
+                          title: Text(e['repo']['name'] ?? 'error'),
+                          subtitle: Text(payload),
+                        ),
+                      );
+                    },
+                  ).toList(),
+                );
+          // mobile, logged in
+          return constraints.maxWidth < 900
+              ? _activityFeed
+              : Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: Text(
+                              'Activity Feed',
+                              style: Theme.of(context).textTheme.headline6,
+                            ),
+                          ),
+                          Expanded(child: _activityFeed),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: Text(
+                              'Trending Repos',
+                              style: Theme.of(context).textTheme.headline6,
+                            ),
+                          ),
+                          Expanded(
+                            child: CustomScrollView(
+                              physics: const BouncingScrollPhysics(),
+                              slivers: [
+                                CupertinoSliverRefreshControl(
+                                  onRefresh: () => Future<void>.value(
+                                    useGetTrendingRepos.refresh(),
+                                  ),
+                                ),
+                                SliverPadding(
+                                  padding: const EdgeInsets.all(8),
+                                  sliver: TrendingRepos(
+                                    trendingRepos:
+                                        useGetTrendingRepos.snapshot.data ??
+                                            [],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+        },
       ),
     );
   }

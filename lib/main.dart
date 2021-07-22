@@ -19,10 +19,6 @@ Future<void> main() async {
         darkTheme: themeDataDark,
         themeMode: ThemeMode.dark,
         home: const MyApp(),
-        builder: (context, child) => MediaQuery(
-          data: const MediaQueryData(textScaleFactor: .8),
-          child: child!,
-        ),
       ),
     ),
   );
