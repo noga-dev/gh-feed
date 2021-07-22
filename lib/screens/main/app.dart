@@ -269,9 +269,12 @@ class MyApp extends HookConsumerWidget {
                           useGetUserReceivedEventsFuture.refresh(),
                         ),
                       ),
-                      ActivityList(
-                        rawFeed:
-                            useGetUserReceivedEventsFuture.snapshot.data!.data,
+                      SliverPadding(
+                        padding: const EdgeInsets.all(8.0),
+                        sliver: ActivityList(
+                          rawFeed: useGetUserReceivedEventsFuture
+                              .snapshot.data!.data,
+                        ),
                       ),
                     ],
                   )
@@ -303,6 +306,7 @@ class MyApp extends HookConsumerWidget {
                       },
                     ).toList(),
                   );
+            // mobile, logged in
             return constraints.maxWidth < 900
                 ? _activityFeed
                 : Row(
@@ -340,9 +344,13 @@ class MyApp extends HookConsumerWidget {
                                       useGetTrendingRepos.refresh(),
                                     ),
                                   ),
-                                  TrendingRepos(
-                                    trendingRepos:
-                                        useGetTrendingRepos.snapshot.data ?? [],
+                                  SliverPadding(
+                                    padding: const EdgeInsets.all(8),
+                                    sliver: TrendingRepos(
+                                      trendingRepos:
+                                          useGetTrendingRepos.snapshot.data ??
+                                              [],
+                                    ),
                                   ),
                                 ],
                               ),
