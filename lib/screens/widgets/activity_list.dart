@@ -114,6 +114,11 @@ class SliverRepoItem extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    if (event.type == 'DeleteEvent' &&
+        useSettingsState.value.filterDeleteEvents) {
+      return const SizedBox.shrink();
+    }
+
     return Card(
       color: Theme.of(context).brightness == Brightness.dark
           ? themeDataDark.cardColor

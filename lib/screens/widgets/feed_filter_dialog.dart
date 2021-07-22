@@ -38,7 +38,16 @@ class FeedFilterDialog extends HookConsumerWidget {
                 useSettingsState.value.copyWith(filterPushEvents: newValue);
             settingsBox.put(kBoxKeySettings, useSettingsState.value.toJson());
           },
-        )
+        ),
+        CheckboxListTile(
+          value: useSettingsState.value.filterDeleteEvents,
+          title: const Text('Filter DeleteEvents'),
+          onChanged: (newValue) {
+            useSettingsState.value =
+                useSettingsState.value.copyWith(filterDeleteEvents: newValue);
+            settingsBox.put(kBoxKeySettings, useSettingsState.value.toJson());
+          },
+        ),
       ],
     );
   }
