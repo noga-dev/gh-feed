@@ -13,14 +13,14 @@ Future<ProviderContainer> init() async {
   final container = ProviderContainer();
   // TODO add encryption
   // TODO costly operation -> show splash?
-  await Hive.initFlutter().then((value) => Hive.openBox(kSharedPrefsBox));
+  await Hive.initFlutter().then((value) => Hive.openBox(kBoxSharedPrefs));
 
   // await dotenv.load(fileName: 'data.env');
   // final ghAuthKey = dotenv.env['GH_SECRET_KEY'];
 
   final dioRequestHeaders = {'Accept': 'application/vnd.github.v3+json'};
 
-  final ghAuthKey = container.read(boxProvider).get(kSecretApiKey);
+  final ghAuthKey = container.read(boxProvider).get(kBoxKeySecretApi);
 
   if (ghAuthKey != null) {
     dioRequestHeaders.putIfAbsent(
@@ -44,9 +44,17 @@ Future<ProviderContainer> init() async {
       ),
     );
 
-  if (!container.read(boxProvider).containsKey('settings')) {
-    unawaited(container.read(boxProvider).put('settings', Settings().toJson()));
+  if (!container.read(boxProvider).containsKey(kBoxKeySettings)) {
+    unawaited(
+        container.read(boxProvider).put(kBoxKeySettings, Settings().toJson()));
   }
+
+  // container.read(boxProvider).listenable();
+
+  // else {
+  //   container.read(settingsProvider).state =
+  //       Settings.fromJson(container.read(boxProvider).get(kBoxKeySettings));
+  // }
 
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.black),

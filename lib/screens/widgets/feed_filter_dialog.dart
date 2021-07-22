@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gaf/utils/common.dart';
 import 'package:gaf/utils/providers.dart';
 import 'package:gaf/utils/settings.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -15,7 +16,7 @@ class FeedFilterDialog extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsBox = ref.read(boxProvider);
     final useSettingsState = useState(
-      Settings.fromJson(settingsBox.get('settings')),
+      Settings.fromJson(settingsBox.get(kBoxKeySettings)),
     );
 
     // late Settings settings;
@@ -35,7 +36,7 @@ class FeedFilterDialog extends HookConsumerWidget {
           onChanged: (newValue) {
             useSettingsState.value =
                 useSettingsState.value.copyWith(filterPushEvents: newValue);
-            settingsBox.put('settings', useSettingsState.value.toJson());
+            settingsBox.put(kBoxKeySettings, useSettingsState.value.toJson());
           },
         )
       ],

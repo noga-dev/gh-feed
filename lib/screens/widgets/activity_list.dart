@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gaf/utils/common.dart';
 import 'package:gaf/utils/settings.dart';
 import 'package:github/github.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../theme/app_themes.dart';
 import '../../utils/providers.dart';
@@ -37,7 +39,13 @@ class ActivityList extends HookConsumerWidget {
       }
     });
 
-    if (Settings.fromJson(ref.watch(boxProvider).get('settings'))
+    final useSettingsListener = useValueListenable(
+      ref.read(boxProvider).listenable(
+        keys: [kBoxKeySettings],
+      ),
+    );
+
+    if (Settings.fromJson(useSettingsListener.get(kBoxKeySettings))
         .filterPushEvents) {
       useFilteredRepos.value = useRepos.value
           .where((element) => element.event.type != 'PushEvent')
@@ -98,7 +106,7 @@ class SliverRepoItem extends HookConsumerWidget {
 
     final settingsBox = ref.read(boxProvider);
     final useSettingsState = useState(
-      Settings.fromJson(settingsBox.get('settings')),
+      Settings.fromJson(settingsBox.get(kBoxKeySettings)),
     );
 
     if (event.type == 'PushEvent' && useSettingsState.value.filterPushEvents) {

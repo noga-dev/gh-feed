@@ -13,9 +13,9 @@ import 'package:very_good_analysis/very_good_analysis.dart';
 import '../../utils/common.dart';
 import '../../utils/providers.dart';
 import '../../utils/settings.dart';
-import '../../widgets/activity_list.dart';
-import '../../widgets/feed_filter_dialog.dart';
 import '../../widgets/trending_repos.dart';
+import '../widgets/activity_list.dart';
+import '../widgets/feed_filter_dialog.dart';
 import '../widgets/requests_left.dart';
 
 class MyApp extends HookConsumerWidget {
@@ -24,7 +24,7 @@ class MyApp extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final useUserLogin = useState<String>(
-        ref.read(boxProvider).get(userLoginKey) ?? defaultUserLogin);
+        ref.read(boxProvider).get(kBoxKeyUserLogin) ?? defaultUserLogin);
     final useGetTrendingRepos = useMemoizedFuture(
       () => ghTrendingRepositories(
         spokenLanguageCode: 'en',
@@ -33,21 +33,24 @@ class MyApp extends HookConsumerWidget {
       ),
     );
     final useGetUserDetailsFuture = useMemoizedFuture(
-      () async =>
-          ref.read(dioProvider).options.headers.containsKey('Authorization')
-              ? ref.read(dioProvider).get('/user').then((value) {
-                  ref.read(boxProvider).put(userLoginKey, value.data['login']);
-                  return value;
-                })
-              : Future.value(
-                  Response(
-                    requestOptions: RequestOptions(path: ''),
-                    data: {
-                      'login': useUserLogin.value,
-                      'avatar_url': defaultAvatar,
-                    },
-                  ),
-                ),
+      () async => ref
+              .read(dioProvider)
+              .options
+              .headers
+              .containsKey('Authorization')
+          ? ref.read(dioProvider).get('/user').then((value) {
+              ref.read(boxProvider).put(kBoxKeyUserLogin, value.data['login']);
+              return value;
+            })
+          : Future.value(
+              Response(
+                requestOptions: RequestOptions(path: ''),
+                data: {
+                  'login': useUserLogin.value,
+                  'avatar_url': defaultAvatar,
+                },
+              ),
+            ),
     );
     final useGetUserReceivedEventsFuture = useMemoizedFuture(
       () async => ref
@@ -121,9 +124,9 @@ class MyApp extends HookConsumerWidget {
                     ),
                     ElevatedButton(
                       onPressed: () async {
-                        await ref.read(boxProvider).delete('settings');
+                        await ref.read(boxProvider).delete(kBoxKeySettings);
                         await ref.read(boxProvider).put(
-                              'settings',
+                              kBoxKeySettings,
                               Settings().toJson(),
                             );
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -183,7 +186,7 @@ class MyApp extends HookConsumerWidget {
                                 ifAbsent: () => 'token $val',
                               );
                           unawaited(
-                            ref.read(boxProvider).put(kSecretApiKey, val),
+                            ref.read(boxProvider).put(kBoxKeySecretApi, val),
                           );
                           useGetUserDetailsFuture.refresh();
                           useGetUserReceivedEventsFuture.refresh();
