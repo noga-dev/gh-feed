@@ -238,6 +238,21 @@ class MyApp extends HookConsumerWidget {
               ),
             ],
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(MdiIcons.filterOutline),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => const FeedFilterDialog(),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+            ),
+          ],
         ),
         body: LayoutBuilder(
           builder: (context, constraints) {
@@ -293,26 +308,9 @@ class MyApp extends HookConsumerWidget {
                           children: [
                             Padding(
                               padding: const EdgeInsets.only(bottom: 12.0),
-                              child: Row(
-                                children: [
-                                  const Spacer(),
-                                  Text(
-                                    'Activity Feed',
-                                    style:
-                                        Theme.of(context).textTheme.headline6,
-                                  ),
-                                  const Spacer(),
-                                  IconButton(
-                                    icon: const Icon(MdiIcons.filterOutline),
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (_) =>
-                                            const FeedFilterDialog(),
-                                      );
-                                    },
-                                  ),
-                                ],
+                              child: Text(
+                                'Activity Feed',
+                                style: Theme.of(context).textTheme.headline6,
                               ),
                             ),
                             Expanded(child: _activityFeed),
