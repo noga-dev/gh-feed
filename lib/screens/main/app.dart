@@ -10,13 +10,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:very_good_analysis/very_good_analysis.dart';
 
-import 'common.dart';
-import 'providers.dart';
-import 'settings.dart';
-import 'widgets/activity_list.dart';
-import 'widgets/feed_filter_dialog.dart';
-import 'widgets/requests_left.dart';
-import 'widgets/trending_repos.dart';
+import '../../utils/common.dart';
+import '../../utils/providers.dart';
+import '../../utils/settings.dart';
+import '../../widgets/activity_list.dart';
+import '../../widgets/feed_filter_dialog.dart';
+import '../../widgets/trending_repos.dart';
+import '../widgets/requests_left.dart';
 
 class MyApp extends HookConsumerWidget {
   const MyApp({Key? key}) : super(key: key);

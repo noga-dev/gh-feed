@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:gaf/providers.dart';
-import 'package:gaf/settings.dart';
+import 'package:gaf/utils/providers.dart';
+import 'package:gaf/utils/settings.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 // Map<String, dynamic> defaults = {

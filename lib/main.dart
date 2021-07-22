@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gaf/init.dart';
+import 'package:gaf/screens/main/init.dart';
 import 'package:gaf/theme/app_themes.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import 'app.dart';
+import 'screens/main/app.dart';
 
 Future<void> main() async {
   final container = await init();

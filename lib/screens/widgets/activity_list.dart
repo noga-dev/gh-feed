@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:gaf/settings.dart';
+import 'package:gaf/utils/settings.dart';
 import 'package:github/github.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../providers.dart';
-import '../theme/app_themes.dart';
+import '../../theme/app_themes.dart';
+import '../../utils/providers.dart';
 import 'event_card.dart';
 import 'event_title.dart';
 import 'repo_preview.dart';

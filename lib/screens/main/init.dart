@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gaf/common.dart';
-import 'package:gaf/settings.dart';
+import 'package:gaf/utils/common.dart';
+import 'package:gaf/utils/settings.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:very_good_analysis/very_good_analysis.dart';
 
-import 'providers.dart';
+import '../../utils/providers.dart';
 
 Future<ProviderContainer> init() async {
   final container = ProviderContainer();
