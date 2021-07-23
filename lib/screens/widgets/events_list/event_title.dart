@@ -13,44 +13,42 @@ class EventTitle extends StatelessWidget {
 
   final Event event;
 
-  Widget _buildTitleText(Event event) {
+  TextSpan _buildTitleText(Event event) {
+    var textSpanList = <TextSpan>[];
     switch (event.type) {
       case 'CreateEvent':
         final refType = event.payload!['ref_type'];
         if (refType == 'branch') {
           final ref = event.payload!['ref'];
-          return RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: event.actor!.login,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
+          textSpanList.addAll(
+            [
+              TextSpan(
+                text: event.actor!.login,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
                 ),
-                TextSpan(
-                  text: ' created $refType ',
+              ),
+              TextSpan(
+                text: ' created $refType ',
+              ),
+              TextSpan(
+                style: GoogleFonts.firaCode(),
+                text: '$ref',
+              ),
+              const TextSpan(
+                text: ' at ',
+              ),
+              TextSpan(
+                text: event.repo!.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
                 ),
-                TextSpan(
-                  style: GoogleFonts.firaCode(),
-                  text: '$ref',
-                ),
-                const TextSpan(
-                  text: ' at ',
-                ),
-                TextSpan(
-                  text: event.repo!.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           );
-        }
-        return RichText(
-          text: TextSpan(
-            children: [
+        } else {
+          textSpanList.addAll(
+            [
               TextSpan(
                 text: event.actor!.login,
                 style: const TextStyle(
@@ -67,167 +65,163 @@ class EventTitle extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        );
+          );
+        }
+        break;
       case ('ForkEvent'):
-        return RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: event.actor!.login,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+        textSpanList.addAll(
+          [
+            TextSpan(
+              text: event.actor!.login,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              const TextSpan(
-                text: ' forked ',
+            ),
+            const TextSpan(
+              text: ' forked ',
+            ),
+            TextSpan(
+              text: event.repo!.name,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              TextSpan(
-                text: event.repo!.name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         );
+        break;
       case 'IssueCommentEvent':
         final issue = event.payload!['issue'];
-        return RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: event.actor!.login,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+        textSpanList.addAll(
+          [
+            TextSpan(
+              text: event.actor!.login,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              const TextSpan(
-                text: ' commented on issue ',
+            ),
+            const TextSpan(
+              text: ' commented on issue ',
+            ),
+            TextSpan(
+              text: '#${issue['number']}',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              TextSpan(
-                text: '#${issue['number']}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+            ),
+            const TextSpan(
+              text: ' at ',
+            ),
+            TextSpan(
+              text: event.repo!.name,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              const TextSpan(
-                text: ' at ',
-              ),
-              TextSpan(
-                text: event.repo!.name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         );
+        break;
       case 'PullRequestEvent':
         final number = event.payload!['number'];
-        return RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: event.actor!.login,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+        textSpanList.addAll(
+          [
+            TextSpan(
+              text: event.actor!.login,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              TextSpan(
-                text: ' opened pull request #$number to ',
+            ),
+            TextSpan(
+              text: ' opened pull request #$number to ',
+            ),
+            TextSpan(
+              text: event.repo!.name,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              TextSpan(
-                text: event.repo!.name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              )
-            ],
-          ),
+            ),
+          ],
         );
+        break;
       case 'PushEvent':
         final commitsCount = event.payload!['size'];
         final ref = event.payload!['ref'].split('/').last;
         final commitText = commitsCount == '1' ? 'commit' : 'commits';
-        return RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: event.actor!.login,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+        textSpanList.addAll(
+          [
+            TextSpan(
+              text: event.actor!.login,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              TextSpan(
-                text: ' pushed $commitsCount $commitText to ',
+            ),
+            TextSpan(
+              text: ' pushed $commitsCount $commitText to ',
+            ),
+            TextSpan(
+              text: '${event.repo!.name}/$ref',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              TextSpan(
-                text: '${event.repo!.name}/$ref',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         );
+        break;
       case 'ReleaseEvent':
         final tagName = event.payload!['release']['tag_name'];
-        return RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: event.actor!.login,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+        textSpanList.addAll(
+          [
+            TextSpan(
+              text: event.actor!.login,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              const TextSpan(
-                text: ' released version ',
+            ),
+            const TextSpan(
+              text: ' released version ',
+            ),
+            TextSpan(
+              text: tagName,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              TextSpan(
-                text: tagName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+            ),
+            const TextSpan(
+              text: ' of ',
+            ),
+            TextSpan(
+              text: event.repo!.name,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              const TextSpan(
-                text: ' of ',
-              ),
-              TextSpan(
-                text: event.repo!.name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         );
+        break;
       case 'WatchEvent':
-        return RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: event.actor!.login,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+        textSpanList.addAll(
+          [
+            TextSpan(
+              text: event.actor!.login,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              const TextSpan(
-                text: ' starred ',
+            ),
+            const TextSpan(
+              text: ' starred ',
+            ),
+            TextSpan(
+              text: event.repo!.name,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
-              TextSpan(
-                text: event.repo!.name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         );
+        break;
       default:
-        return Text(event.actor!.login!);
+        return TextSpan(text: event.actor!.login!);
     }
+    return TextSpan(children: textSpanList);
   }
 
   @override
@@ -236,7 +230,9 @@ class EventTitle extends StatelessWidget {
       leading: UserAvatar(
         avatarUrl: event.actor!.avatarUrl!,
       ),
-      title: _buildTitleText(event),
+      title: SelectableText.rich(
+        _buildTitleText(event),
+      ),
       subtitle: CreatedAt(
         timeCreated: event.createdAt!,
       ),
