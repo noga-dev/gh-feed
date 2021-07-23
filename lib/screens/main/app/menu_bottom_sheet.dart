@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:gaf/theme/github_colors.dart';
 import 'package:gaf/utils/common.dart';
 import 'package:gaf/utils/providers.dart';
 import 'package:gaf/utils/settings.dart';
@@ -22,78 +23,84 @@ class MenuBottomSheet extends HookConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.teal.shade700,
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    currentUser?.login ?? defaultUserLogin,
-                    style: Theme.of(context).textTheme.headline6,
-                  ),
-                  const SizedBox(height: 8),
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(
-                      currentUser?.avatarUrl ?? defaultAvatar,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Colors.orange),
-                      foregroundColor: MaterialStateProperty.all(Colors.black),
-                      padding: MaterialStateProperty.all(
-                        const EdgeInsets.all(12),
-                      ),
-                    ),
-                    onPressed: () {
-                      unawaited(ref.read(boxProvider).clear());
-                    },
-                    child: const Text('Log Out'),
-                  ),
-                ],
+          ListTile(
+            leading: CircleAvatar(
+              backgroundImage: NetworkImage(
+                currentUser?.avatarUrl ?? defaultAvatar,
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              children: [
-                // TODO p4 make optional either username for only public data
-                // OR key for private as well
-                // AND add this as a separate option to track other users?
-                TextField(
-                  decoration: const InputDecoration(hintText: 'Auth Key'),
-                  obscureText: true,
-                  onChanged: (val) async {
-                    try {
-                      ref.read(dioProvider).options.headers.update(
-                            'Authorization',
-                            (value) => 'token $val',
-                            ifAbsent: () => 'token $val',
-                          );
-                      unawaited(
-                        ref.read(boxProvider).put(kBoxKeySecretApi, val),
-                      );
-                      // TODO p1 fix ui not refreshing since moving this
-                      // useGetUserDetailsFuture.refresh();
-                      // useGetUserReceivedEventsFuture.refresh();
-                    } on DioError {
-                      ref
-                          .read(dioProvider)
-                          .options
-                          .headers
-                          .remove('Authorization');
-                    }
-                  },
+            title: Text(
+              currentUser?.login ?? 'Anonymous',
+              style: Theme.of(context).textTheme.headline6,
+            ),
+            trailing: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                primary: Theme.of(context).colorScheme.onBackground,
+                shape: const StadiumBorder(),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.onBackground,
                 ),
-              ],
+              ),
+              onPressed: () {
+                if (currentUser?.login == null) {
+                  showDialog(
+                    context: context,
+                    builder: (_) => SimpleDialog(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: TextField(
+                            decoration: InputDecoration(
+                              hintText: 'Auth Key',
+                              filled: true,
+                              fillColor: GhColors.grey.shade800,
+                            ),
+                            obscureText: true,
+                            onChanged: (val) async {
+                              try {
+                                ref.read(dioProvider).options.headers.update(
+                                      'Authorization',
+                                      (value) => 'token $val',
+                                      ifAbsent: () => 'token $val',
+                                    );
+                                unawaited(
+                                  ref
+                                      .read(boxProvider)
+                                      .put(kBoxKeySecretApi, val),
+                                );
+                                // TODO p1 fix ui not refreshing since moving this
+                                // useGetUserDetailsFuture.refresh();
+                                // useGetUserReceivedEventsFuture.refresh();
+                              } on DioError {
+                                ref
+                                    .read(dioProvider)
+                                    .options
+                                    .headers
+                                    .remove('Authorization');
+                              }
+                            },
+                          ),
+                        ),
+                        ButtonBar(
+                          children: [
+                            TextButton(
+                              child: Text('Log In'),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  unawaited(ref.read(boxProvider).clear());
+                }
+              },
+              child: Text(currentUser?.login == null ? 'Log In' : 'Log Out'),
             ),
           ),
           if (kDebugMode) ...[
+            const Divider(),
             ElevatedButton(
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(Colors.red.shade900),
