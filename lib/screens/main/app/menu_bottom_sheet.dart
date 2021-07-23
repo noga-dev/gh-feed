@@ -46,7 +46,7 @@ class MenuBottomSheet extends HookConsumerWidget {
                 ),
               ),
               onPressed: () {
-                if (useUser.state?.login == null) {
+                if (useUser.state == null) {
                   showDialog(
                     context: context,
                     builder: (_) => SimpleDialog(
@@ -105,6 +105,7 @@ class MenuBottomSheet extends HookConsumerWidget {
                   );
                 } else {
                   unawaited(ref.read(boxProvider).clear());
+                  ref.read(userProvider).state = null;
                 }
               },
               child: Text(useUser.state == null ? 'Log In' : 'Log Out'),

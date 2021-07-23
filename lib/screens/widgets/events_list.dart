@@ -108,7 +108,8 @@ class SliverRepoItem extends HookConsumerWidget {
 
     final settingsBox = ref.read(boxProvider);
     final useSettingsState = useState(
-      Settings.fromJson(settingsBox.get(kBoxKeySettings)),
+      Settings.fromJson(
+          settingsBox.get(kBoxKeySettings, defaultValue: Settings().toJson())),
     );
 
     if (event.type == 'PushEvent' && useSettingsState.value.filterPushEvents) {
