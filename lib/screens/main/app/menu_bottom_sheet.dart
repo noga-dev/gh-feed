@@ -6,6 +6,7 @@ import 'package:gaf/utils/common.dart';
 import 'package:gaf/utils/providers.dart';
 import 'package:gaf/utils/settings.dart';
 import 'package:github/github.dart';
+import 'package:groovin_widgets/groovin_widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:very_good_analysis/very_good_analysis.dart';
 
@@ -23,6 +24,10 @@ class MenuBottomSheet extends HookConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ModalDrawerHandle(),
+          ),
           ListTile(
             leading: CircleAvatar(
               backgroundImage: NetworkImage(
@@ -84,8 +89,8 @@ class MenuBottomSheet extends HookConsumerWidget {
                         ButtonBar(
                           children: [
                             TextButton(
-                              child: Text('Log In'),
                               onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Log In'),
                             ),
                           ],
                         ),
@@ -98,6 +103,10 @@ class MenuBottomSheet extends HookConsumerWidget {
               },
               child: Text(currentUser?.login == null ? 'Log In' : 'Log Out'),
             ),
+          ),
+          const ListTile(
+            leading: Icon(Icons.info_outline),
+            title: Text('GitHub Activity Feed'),
           ),
           if (kDebugMode) ...[
             const Divider(),
