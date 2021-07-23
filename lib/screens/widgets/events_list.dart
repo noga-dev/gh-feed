@@ -16,8 +16,8 @@ import 'events_list/event_card.dart';
 import 'events_list/event_title.dart';
 import 'events_list/repo_preview.dart';
 
-class ActivityList extends HookConsumerWidget {
-  const ActivityList({
+class EventsList extends HookConsumerWidget {
+  const EventsList({
     Key? key,
     required this.rawFeed,
   }) : super(key: key);
@@ -46,7 +46,8 @@ class ActivityList extends HookConsumerWidget {
     );
 
     // TODO p2 fix repo itemCount adding instead of setting
-    if (Settings.fromJson(useSettingsListener.get(kBoxKeySettings))
+    if (Settings.fromJson(useSettingsListener.get(kBoxKeySettings,
+            defaultValue: Settings().toJson()))
         .filterPushEvents) {
       useFilteredRepos.value = useRepos.value
           .where((element) => element.event.type != 'PushEvent')
@@ -208,18 +209,9 @@ class ErrorPreview extends StatelessWidget {
     return SizedBox(
       height: RepoPreview.totalPreviewBoxHeight,
       child: SingleChildScrollView(
-        child: RichText(
-          text: TextSpan(
-            style: TextStyle(color: Colors.red.shade300),
-            children: [
-              TextSpan(
-                text: 'REQUEST -> $request',
-              ),
-              TextSpan(
-                text: '\nRESPONSE -> $error',
-              ),
-            ],
-          ),
+        child: Text(
+          error,
+          style: TextStyle(color: Colors.red.shade300),
         ),
       ),
     );

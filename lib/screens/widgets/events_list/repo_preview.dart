@@ -32,8 +32,6 @@ class RepoPreview extends StatelessWidget {
         onTap: () async {
           if (await canLaunch(repo.htmlUrl)) {
             await launch(repo.htmlUrl);
-          } else {
-            print('cannot launch');
           }
         },
         child: Column(

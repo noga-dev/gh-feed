@@ -36,6 +36,18 @@ Future<ProviderContainer> init() async {
     )
     ..interceptors.add(
       InterceptorsWrapper(
+        onError: (error, handler) {
+          if (error.response != null) {
+            return handler.reject(
+              DioError(
+                requestOptions: error.requestOptions,
+                error:
+                    // ignore: lines_longer_than_80_chars
+                    'REQUSTS REMAINING: ${error.response?.headers.value('x-ratelimit-remaining')!}',
+              ),
+            );
+          }
+        },
         onResponse: (response, handler) {
           container.read(requestsCountProvider).state = int.parse(
               response.headers.value('x-ratelimit-remaining') ?? '-1');

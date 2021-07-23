@@ -13,13 +13,14 @@ import 'package:very_good_analysis/very_good_analysis.dart';
 class MenuBottomSheet extends HookConsumerWidget {
   const MenuBottomSheet({
     Key? key,
-    required this.currentUser,
+    required this.refreshDelegate,
   }) : super(key: key);
 
-  final User? currentUser;
+  final MemoizedAsyncSnapshot refreshDelegate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final useUser = ref.watch(userProvider);
     return SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -31,11 +32,11 @@ class MenuBottomSheet extends HookConsumerWidget {
           ListTile(
             leading: CircleAvatar(
               backgroundImage: NetworkImage(
-                currentUser?.avatarUrl ?? defaultAvatar,
+                useUser.state?.avatarUrl ?? defaultAvatar,
               ),
             ),
             title: Text(
-              currentUser?.login ?? 'Anonymous',
+              useUser.state?.login ?? 'Anonymous',
               style: Theme.of(context).textTheme.headline6,
             ),
             trailing: OutlinedButton(
@@ -47,7 +48,7 @@ class MenuBottomSheet extends HookConsumerWidget {
                 ),
               ),
               onPressed: () {
-                if (currentUser?.login == null) {
+                if (useUser.state?.login == null) {
                   showDialog(
                     context: context,
                     builder: (_) => SimpleDialog(
@@ -73,9 +74,17 @@ class MenuBottomSheet extends HookConsumerWidget {
                                       .read(boxProvider)
                                       .put(kBoxKeySecretApi, val),
                                 );
-                                // TODO p1 fix ui not refreshing since moving this
-                                // useGetUserDetailsFuture.refresh();
-                                // useGetUserReceivedEventsFuture.refresh();
+                                await ref
+                                    .read(dioProvider)
+                                    .get('/user')
+                                    .then((value) {
+                                  ref.read(boxProvider).put(
+                                      kBoxKeyUserLogin, value.data['login']);
+                                  ref.read(userProvider).state =
+                                      User.fromJson(value.data);
+                                  return value;
+                                });
+                                refreshDelegate.refresh();
                               } on DioError {
                                 ref
                                     .read(dioProvider)
@@ -101,7 +110,7 @@ class MenuBottomSheet extends HookConsumerWidget {
                   unawaited(ref.read(boxProvider).clear());
                 }
               },
-              child: Text(currentUser?.login == null ? 'Log In' : 'Log Out'),
+              child: Text(useUser.state?.login == null ? 'Log In' : 'Log Out'),
             ),
           ),
           const ListTile(

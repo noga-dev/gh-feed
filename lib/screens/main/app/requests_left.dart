@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:gaf/utils/providers.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class RequestsLeft extends StatelessWidget {
+class RequestsLeft extends HookConsumerWidget {
   const RequestsLeft({
     Key? key,
-    required this.count,
   }) : super(key: key);
 
-  final String count;
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(context, ref) {
     return Text(
-      'Requests left: $count',
+      'Requests left: ${ref.watch(requestsCountProvider).state.toString()}',
     );
   }
 }

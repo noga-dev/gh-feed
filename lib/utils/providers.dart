@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:gaf/models/user.dart';
 import 'package:github/github.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -11,11 +10,7 @@ import 'common.dart';
 final dioProvider = Provider<Dio>((ref) => Dio());
 final boxProvider = Provider<Box>((ref) => Hive.box(kBoxSharedPrefs));
 
-// ignore: lines_longer_than_80_chars
-// TODO p2 switch to regular user model and manually call refresh when user is changed?
-final userProvider = ChangeNotifierProvider<UserWrapper>(
-  (ref) => UserWrapper(User()),
-);
+final userProvider = StateProvider<User?>((ref) => null);
 
 // TODO p3 put and retrieve from box
 final reposCacheProvider = StateProvider<List<Repository>>((ref) => []);
