@@ -1,30 +1,27 @@
-import 'dart:io';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gaf/screens/main/app/requests_left.dart';
+import 'package:gaf/utils/mock_data.dart';
 import 'package:gh_trend/gh_trend.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:very_good_analysis/very_good_analysis.dart';
 
 import '../../utils/common.dart';
 import '../../utils/providers.dart';
-import '../../utils/settings.dart';
-import '../widgets/activity_list.dart';
-import '../widgets/feed_filter_dialog.dart';
-import '../widgets/requests_left.dart';
+import '../widgets/events_list.dart';
 import '../widgets/trending_repos.dart';
+import 'app/feed_filter_dialog.dart';
+import 'app/menu_bottom_sheet.dart';
 
 class MyApp extends HookConsumerWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final useUserLogin = useState<String>(
-        ref.read(boxProvider).get(kBoxKeyUserLogin) ?? defaultUserLogin);
+    // final useUserLogin = useState<String>(
+    //     ref.read(boxProvider).get(kBoxKeyUserLogin) ?? defaultUserLogin);
+
     final useGetTrendingRepos = useMemoizedFuture(
       () => ghTrendingRepositories(
         spokenLanguageCode: 'en',
@@ -32,41 +29,31 @@ class MyApp extends HookConsumerWidget {
         proxy: kIsWeb ? 'https://cors.bridged.cc/' : '',
       ),
     );
-    final useGetUserDetailsFuture = useMemoizedFuture(
-      () async => ref
-              .read(dioProvider)
-              .options
-              .headers
-              .containsKey('Authorization')
-          ? ref.read(dioProvider).get('/user').then((value) {
-              ref.read(boxProvider).put(kBoxKeyUserLogin, value.data['login']);
-              return value;
-            })
-          : Future.value(
-              Response(
-                requestOptions: RequestOptions(path: ''),
-                data: {
-                  'login': useUserLogin.value,
-                  'avatar_url': defaultAvatar,
-                },
-              ),
-            ),
-    );
+
     final useGetUserReceivedEventsFuture = useMemoizedFuture(
-      () async => ref
-          .read(dioProvider)
-          .get('/users/${useUserLogin.value}/received_events'),
+      () async {
+        if (ref.read(userProvider).state != null) {
+          return ref.read(dioProvider).get(
+              '/users/${ref.read(userProvider).state!.login}/received_events');
+        }
+        return Future.value(null);
+      },
+      keys: [ref.read(userProvider).state?.login ?? mockDefaultUsername],
     );
-    final useGetPublicEvents =
-        useMemoizedFuture(() => ref.read(dioProvider).get('/events'));
+
+    final useGetPublicEvents = useMemoizedFuture(
+      () => ref.read(dioProvider).get('/events'),
+    );
 
     if (!useGetUserReceivedEventsFuture.snapshot.hasData &&
-        !useGetTrendingRepos.snapshot.hasData) {
+            !useGetTrendingRepos.snapshot.hasData ||
+        !useGetPublicEvents.snapshot.hasData) {
       return const Center(child: CircularProgressIndicator.adaptive());
     }
 
     if (useGetUserReceivedEventsFuture.snapshot.hasError ||
-        useGetTrendingRepos.snapshot.hasError) {
+        useGetTrendingRepos.snapshot.hasError ||
+        useGetPublicEvents.snapshot.hasError) {
       return Scaffold(
         body: Center(
           child: Text(
@@ -78,155 +65,27 @@ class MyApp extends HookConsumerWidget {
       );
     }
 
-    final avatar = CircleAvatar(
-      backgroundImage: NetworkImage(
-        useGetUserDetailsFuture.snapshot.hasData
-            ? useGetUserDetailsFuture.snapshot.data!.data['avatar_url']
-            : defaultAvatar,
-      ),
-    );
-
     return Scaffold(
-      drawerEdgeDragWidth: 32,
-      endDrawer: kDebugMode
-          ? Drawer(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Colors.red),
-                    ),
-                    onPressed: () async {
-                      unawaited(ref.read(boxProvider).clear());
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'box cleared',
-                            textAlign: TextAlign.center,
-                            textScaleFactor: 2,
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text('clear box'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await ref.read(boxProvider).delete(kBoxKeySettings);
-                      await ref.read(boxProvider).put(
-                            kBoxKeySettings,
-                            Settings().toJson(),
-                          );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'settings deleted',
-                            textAlign: TextAlign.center,
-                            textScaleFactor: 2,
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text('delete settings'),
-                  )
-                ],
-              ),
-            )
-          : null,
-      drawer: Drawer(
-        child: Column(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.teal.shade700,
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    avatar,
-                    if (useGetUserDetailsFuture.snapshot.hasData) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        useGetUserDetailsFuture.snapshot.data!.data['login'],
-                        style: Theme.of(context).textTheme.headline6,
-                      ),
-                    ]
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                children: [
-                  // TODO make optional either username for only public data
-                  // OR key for private as well
-                  // AND add this as a separate option to track other users?
-                  TextField(
-                    decoration: const InputDecoration(hintText: 'Auth Key'),
-                    obscureText: true,
-                    onChanged: (val) async {
-                      try {
-                        ref.read(dioProvider).options.headers.update(
-                              'Authorization',
-                              (value) => 'token $val',
-                              ifAbsent: () => 'token $val',
-                            );
-                        unawaited(
-                          ref.read(boxProvider).put(kBoxKeySecretApi, val),
-                        );
-                        useGetUserDetailsFuture.refresh();
-                        useGetUserReceivedEventsFuture.refresh();
-                      } on DioError {
-                        ref
-                            .read(dioProvider)
-                            .options
-                            .headers
-                            .remove('Authorization');
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
       appBar: AppBar(
         leading: Padding(
           padding: const EdgeInsets.all(4.0),
           child: Builder(
             builder: (context) => IconButton(
-              icon: avatar,
-              onPressed: () => Scaffold.of(context).openDrawer(),
-              /*onPressed: () {
-                if (isDesktopDeviceOrWeb) {
-                  showDialog(
-                    context: context,
-                    builder: (_) => const SimpleDialog(
-                      title: Text('Settings'),
-                    ),
-                  );
-                } else {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (_) => Container(),
-                  );
-                }
-              },*/
+              icon: CircleAvatar(
+                backgroundImage: NetworkImage(
+                  ref.read(userProvider).state?.avatarUrl ?? defaultAvatar,
+                ),
+              ),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (_) => const MenuBottomSheet(),
+                );
+              },
             ),
           ),
         ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            RequestsLeft(
-              count: ref.watch(requestsCountProvider).state.toString(),
-            ),
-          ],
-        ),
+        title: kDebugMode ? const RequestsLeft() : const Text('Activity Feed'),
         actions: [
           IconButton(
             icon: const Icon(MdiIcons.filterOutline),
@@ -237,51 +96,37 @@ class MyApp extends HookConsumerWidget {
               );
             },
           ),
-          Builder(
-            builder: (context) {
-              return IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () => Scaffold.of(context).openEndDrawer(),
-              );
-            },
-          ),
         ],
       ),
+      // TODO p2 refactor this layoutBuilder for soc & adaptive future state
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final _activityFeed = (useUserLogin.value != defaultUserLogin)
-              ? CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    CupertinoSliverRefreshControl(
-                      onRefresh: () => Future<void>.value(
-                        useGetUserReceivedEventsFuture.refresh(),
-                      ),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.all(8.0),
-                      sliver: ActivityList(
-                        rawFeed: useGetUserReceivedEventsFuture
-                            .snapshot.data!.data,
-                      ),
-                    ),
-                  ],
-                )
+          final _activityFeed = (ref.watch(userProvider).state != null)
+              ? (useGetUserReceivedEventsFuture.snapshot.connectionState !=
+                      ConnectionState.done)
+                  ? const CircularProgressIndicator.adaptive()
+                  : CustomScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      slivers: [
+                        CupertinoSliverRefreshControl(
+                          onRefresh: () => Future<void>.value(
+                            useGetUserReceivedEventsFuture.refresh(),
+                          ),
+                        ),
+                        SliverPadding(
+                          padding: const EdgeInsets.all(8.0),
+                          sliver: EventsList(
+                            rawFeed: useGetUserReceivedEventsFuture
+                                .snapshot.data!.data,
+                          ),
+                        ),
+                      ],
+                    )
               : ListView(
                   children:
                       (useGetPublicEvents.snapshot.data!.data as List).map(
                     (e) {
                       var payload = e['type'];
-                      // if (e['type'] == 'IssueCommentEvent') {
-                      //   payload =
-                      //  e['payload']['issue']['labels'][0]['description'];
-                      // } else if (e['type'] == 'PushEvent') {
-                      //   payload = e['payload']['commits'][0]['url'];
-                      // } else if (e['type'] == 'CreateEvent') {
-                      //   payload = e['payload']?['description'] ?? 'error';
-                      // } else if (e['type'] == 'PullRequestEvent') {
-                      //   payload = e['payload']['pull_request']['title'];
-                      // }
                       return Card(
                         child: ListTile(
                           leading: CircleAvatar(
@@ -295,7 +140,6 @@ class MyApp extends HookConsumerWidget {
                     },
                   ).toList(),
                 );
-          // mobile, logged in
           return constraints.maxWidth < 900
               ? _activityFeed
               : Row(
@@ -337,8 +181,7 @@ class MyApp extends HookConsumerWidget {
                                   padding: const EdgeInsets.all(8),
                                   sliver: TrendingRepos(
                                     trendingRepos:
-                                        useGetTrendingRepos.snapshot.data ??
-                                            [],
+                                        useGetTrendingRepos.snapshot.data ?? [],
                                   ),
                                 ),
                               ],

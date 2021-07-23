@@ -6,6 +6,8 @@ import 'package:github/github.dart';
 const mockDefaultAvatar =
     'https://avatars.githubusercontent.com/in/15368?s=64&v=4';
 
+const mockDefaultUsername = 'rrousselGit';
+
 final mockRepoResponse = Response(
   requestOptions: RequestOptions(
     path: '',

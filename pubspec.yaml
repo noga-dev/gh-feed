@@ -42,6 +42,7 @@ dependencies:
   hive_flutter: ^1.1.0
   gh_trend: ^1.1.0
     # git: https://github.com/Agondev/gh_trend
+  groovin_widgets: ^3.0.2
 
 dev_dependencies:
   flutter_test:

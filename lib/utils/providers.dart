@@ -1,6 +1,3 @@
-// TODO refactor this before codebase gets out of hand
-// https://github.com/rrousselGit/flutter_hooks/issues/132
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -13,7 +10,9 @@ import 'common.dart';
 final dioProvider = Provider<Dio>((ref) => Dio());
 final boxProvider = Provider<Box>((ref) => Hive.box(kBoxSharedPrefs));
 
-// TODO put and retrieve from box
+final userProvider = StateProvider<User?>((ref) => null);
+
+// TODO p3 put and retrieve from box
 final reposCacheProvider = StateProvider<List<Repository>>((ref) => []);
 final requestsCountProvider = StateProvider<int>((ref) => 0);
 
