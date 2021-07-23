@@ -12,9 +12,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../theme/app_themes.dart';
 import '../../utils/providers.dart';
-import 'event_card.dart';
-import 'event_title.dart';
-import 'repo_preview.dart';
+import 'events_list/event_card.dart';
+import 'events_list/event_title.dart';
+import 'events_list/repo_preview.dart';
 
 class ActivityList extends HookConsumerWidget {
   const ActivityList({
@@ -45,7 +45,7 @@ class ActivityList extends HookConsumerWidget {
       ),
     );
 
-    // TODO fix repo itemCount adding instead of setting
+    // TODO p2 fix repo itemCount adding instead of setting
     if (Settings.fromJson(useSettingsListener.get(kBoxKeySettings))
         .filterPushEvents) {
       useFilteredRepos.value = useRepos.value
@@ -55,7 +55,7 @@ class ActivityList extends HookConsumerWidget {
       useFilteredRepos.value = useRepos.value.toList();
     }
 
-    // TODO add animation
+    // TODO p4 add animation
     return SliverAnimatedList(
       itemBuilder: (context, idx, anim) {
         return useFilteredRepos.value[idx];

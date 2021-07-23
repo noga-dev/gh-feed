@@ -3,7 +3,7 @@ import 'package:github/github.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'user_avatar.dart';
+import '../user_avatar.dart';
 
 const _horizontalDivider = Divider(
   height: 8.0,

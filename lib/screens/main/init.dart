@@ -11,8 +11,8 @@ import '../../utils/providers.dart';
 
 Future<ProviderContainer> init() async {
   final container = ProviderContainer();
-  // TODO add encryption
-  // TODO costly operation -> show splash?
+  // TODO p3 add encryption
+  // TODO p3 costly operation -> show splash?
   await Hive.initFlutter().then((value) => Hive.openBox(kBoxSharedPrefs));
 
   // await dotenv.load(fileName: 'data.env');

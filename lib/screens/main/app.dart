@@ -1,24 +1,20 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:gaf/screens/widgets/menu_bottom_sheet.dart';
+import 'package:gaf/screens/main/app/requests_left.dart';
 import 'package:gh_trend/gh_trend.dart';
 import 'package:github/github.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:very_good_analysis/very_good_analysis.dart';
 
 import '../../utils/common.dart';
 import '../../utils/providers.dart';
-import '../../utils/settings.dart';
-import '../widgets/activity_list.dart';
-import '../widgets/feed_filter_dialog.dart';
-import '../widgets/requests_left.dart';
+import '../widgets/events_list.dart';
 import '../widgets/trending_repos.dart';
+import 'app/feed_filter_dialog.dart';
+import 'app/menu_bottom_sheet.dart';
 
 class MyApp extends HookConsumerWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -34,7 +30,9 @@ class MyApp extends HookConsumerWidget {
         proxy: kIsWeb ? 'https://cors.bridged.cc/' : '',
       ),
     );
-    final useGetUserDetailsFuture = useMemoizedFuture(
+
+    // final useGetUserDetailsFuture = useMemoizedFuture(
+    useMemoizedFuture(
       () async => ref
               .read(dioProvider)
               .options
@@ -42,6 +40,7 @@ class MyApp extends HookConsumerWidget {
               .containsKey('Authorization')
           ? ref.read(dioProvider).get('/user').then((value) {
               ref.read(boxProvider).put(kBoxKeyUserLogin, value.data['login']);
+              ref.read(userProvider).setUser(User.fromJson(value.data));
               return value;
             })
           : Future.value(
@@ -80,161 +79,48 @@ class MyApp extends HookConsumerWidget {
       );
     }
 
-    final avatar = CircleAvatar(
-      backgroundImage: NetworkImage(
-        useGetUserDetailsFuture.snapshot.hasData
-            ? useGetUserDetailsFuture.snapshot.data!.data['avatar_url']
-            : defaultAvatar,
-      ),
-    );
-
     return Scaffold(
-      drawerEdgeDragWidth: 32,
-      endDrawer: kDebugMode
-          ? Drawer(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Colors.red),
-                    ),
-                    onPressed: () async {
-                      unawaited(ref.read(boxProvider).clear());
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'box cleared',
-                            textAlign: TextAlign.center,
-                            textScaleFactor: 2,
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text('clear box'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await ref.read(boxProvider).delete(kBoxKeySettings);
-                      await ref.read(boxProvider).put(
-                            kBoxKeySettings,
-                            Settings().toJson(),
-                          );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'settings deleted',
-                            textAlign: TextAlign.center,
-                            textScaleFactor: 2,
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text('delete settings'),
-                  )
-                ],
-              ),
-            )
-          : null,
-      drawer: Drawer(
-        child: Column(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.teal.shade700,
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    avatar,
-                    if (useGetUserDetailsFuture.snapshot.hasData) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        useGetUserDetailsFuture.snapshot.data!.data['login'],
-                        style: Theme.of(context).textTheme.headline6,
-                      ),
-                    ]
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                children: [
-                  // TODO make optional either username for only public data
-                  // OR key for private as well
-                  // AND add this as a separate option to track other users?
-                  TextField(
-                    decoration: const InputDecoration(hintText: 'Auth Key'),
-                    obscureText: true,
-                    onChanged: (val) async {
-                      try {
-                        ref.read(dioProvider).options.headers.update(
-                              'Authorization',
-                              (value) => 'token $val',
-                              ifAbsent: () => 'token $val',
-                            );
-                        unawaited(
-                          ref.read(boxProvider).put(kBoxKeySecretApi, val),
-                        );
-                        useGetUserDetailsFuture.refresh();
-                        useGetUserReceivedEventsFuture.refresh();
-                      } on DioError {
-                        ref
-                            .read(dioProvider)
-                            .options
-                            .headers
-                            .remove('Authorization');
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
       appBar: AppBar(
         leading: Padding(
           padding: const EdgeInsets.all(4.0),
           child: Builder(
             builder: (context) => IconButton(
-              icon: avatar,
-              onPressed: () => Scaffold.of(context).openDrawer(),
-              /*onPressed: () {
-                final screenSize = getSize(context);
-                if (screenSize == ScreenSize.large ||
-                    screenSize == ScreenSize.extraLarge) {
-                  showDialog(
-                    context: context,
-                    builder: (_) => const SimpleDialog(
-                      title: Text('Settings'),
-                    ),
-                  );
-                } else {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (_) => MenuBottomSheet(
-                      currentUser: User.fromJson(
-                          useGetUserDetailsFuture.snapshot.data!.data),
-                    ),
-                  );
-                }
-              },*/
+              icon: CircleAvatar(
+                backgroundImage: NetworkImage(
+                  ref.read(userProvider).getUser().avatarUrl ?? defaultAvatar,
+                ),
+              ),
+              // onPressed: () => Scaffold.of(context).openDrawer(),
+              onPressed: () {
+                // final screenSize = getSize(context);
+                // if (screenSize == ScreenSize.large ||
+                //     screenSize == ScreenSize.extraLarge) {
+                //   showDialog(
+                //     context: context,
+                //     builder: (_) => const SimpleDialog(
+                //       title: Text('Settings'),
+                //       children: [],
+                //     ),
+                //   );
+                // } else {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (_) {
+                    return MenuBottomSheet(
+                      currentUser: ref.read(userProvider).getUser(),
+                    );
+                  },
+                );
+                // }
+              },
             ),
           ),
         ),
-        title: Text('Activity Feed'),
-        /*title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            RequestsLeft(
-              count: ref.watch(requestsCountProvider).state.toString(),
-            ),
-          ],
-        ),*/
+        title: kDebugMode
+            ? RequestsLeft(
+                count: ref.read(requestsCountProvider).state.toString(),
+              )
+            : const Text('Activity Feed'),
         actions: [
           IconButton(
             icon: const Icon(MdiIcons.filterOutline),
@@ -242,14 +128,6 @@ class MyApp extends HookConsumerWidget {
               showDialog(
                 context: context,
                 builder: (_) => const FeedFilterDialog(),
-              );
-            },
-          ),
-          Builder(
-            builder: (context) {
-              return IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () => Scaffold.of(context).openEndDrawer(),
               );
             },
           ),

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:github/github.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../widgets/created_at.dart';
-import '../widgets/user_avatar.dart';
+import '../user_avatar.dart';
+import 'created_at.dart';
 
 class EventTitle extends StatelessWidget {
   const EventTitle({
