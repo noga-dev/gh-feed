@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gaf/models/user.dart';
 import 'package:gaf/utils/common.dart';
 import 'package:gaf/utils/settings.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -15,12 +16,14 @@ Future<ProviderContainer> init() async {
   // TODO p3 costly operation -> show splash?
   await Hive.initFlutter().then((value) => Hive.openBox(kBoxSharedPrefs));
 
+  final box = container.read(boxProvider);
+
   // await dotenv.load(fileName: 'data.env');
   // final ghAuthKey = dotenv.env['GH_SECRET_KEY'];
 
   final dioRequestHeaders = {'Accept': 'application/vnd.github.v3+json'};
 
-  final ghAuthKey = container.read(boxProvider).get(kBoxKeySecretApi);
+  final ghAuthKey = box.get(kBoxKeySecretApi);
 
   if (ghAuthKey != null) {
     dioRequestHeaders.putIfAbsent(
@@ -56,9 +59,14 @@ Future<ProviderContainer> init() async {
       ),
     );
 
-  if (!container.read(boxProvider).containsKey(kBoxKeySettings)) {
-    unawaited(
-        container.read(boxProvider).put(kBoxKeySettings, Settings().toJson()));
+  if (!box.containsKey(kBoxKeySettings)) {
+    unawaited(box.put(kBoxKeySettings, Settings().toJson()));
+  }
+
+  if (box.containsKey(kBoxKeyUserJson)) {
+    container.read(userProvider).state = UserWrapper.fromJsonHive(
+      box.get(kBoxKeyUserJson),
+    );
   }
 
   // container.read(boxProvider).listenable();

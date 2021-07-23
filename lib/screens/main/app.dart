@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gaf/screens/main/app/requests_left.dart';
+import 'package:gaf/utils/mock_data.dart';
 import 'package:gh_trend/gh_trend.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -37,6 +38,7 @@ class MyApp extends HookConsumerWidget {
         }
         return Future.value(null);
       },
+      keys: [ref.read(userProvider).state?.login ?? mockDefaultUsername],
     );
 
     final useGetPublicEvents = useMemoizedFuture(
@@ -77,8 +79,7 @@ class MyApp extends HookConsumerWidget {
               onPressed: () {
                 showModalBottomSheet(
                   context: context,
-                  builder: (_) => MenuBottomSheet(
-                      refreshDelegate: useGetUserReceivedEventsFuture),
+                  builder: (_) => const MenuBottomSheet(),
                 );
               },
             ),
@@ -97,6 +98,7 @@ class MyApp extends HookConsumerWidget {
           ),
         ],
       ),
+      // TODO p2 refactor this layoutBuilder for soc & adaptive future state
       body: LayoutBuilder(
         builder: (context, constraints) {
           final _activityFeed = (ref.watch(userProvider).state != null)
@@ -138,7 +140,6 @@ class MyApp extends HookConsumerWidget {
                     },
                   ).toList(),
                 );
-          // mobile, logged in
           return constraints.maxWidth < 900
               ? _activityFeed
               : Row(

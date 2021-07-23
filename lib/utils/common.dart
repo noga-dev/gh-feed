@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-const kBoxSharedPrefs = 'sharedPrefsBox';
-const kBoxKeySecretApi = 'secretKey';
-const kBoxKeyUserLogin = 'userLogin';
-const kBoxKeySettings = 'settings';
+const kBoxSharedPrefs = 'kBoxSharedPrefs';
+const kBoxKeySecretApi = 'kBoxKeySecretApi';
+const kBoxKeyUserJson = 'kBoxKeyUserJson';
+const kBoxKeySettings = 'kBoxKeySettings';
 
 const defaultUserLogin = 'rrousselGit';
 const defaultAvatar = 'https://avatars.githubusercontent.com/in/15368?s=64&v=4';

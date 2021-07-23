@@ -1,22 +1,20 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:gaf/theme/github_colors.dart';
-import 'package:gaf/utils/common.dart';
-import 'package:gaf/utils/providers.dart';
-import 'package:gaf/utils/settings.dart';
-import 'package:github/github.dart';
 import 'package:groovin_widgets/groovin_widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:very_good_analysis/very_good_analysis.dart';
 
+import '../../../models/user.dart';
+import '../../../theme/github_colors.dart';
+import '../../../utils/common.dart';
+import '../../../utils/providers.dart';
+import '../../../utils/settings.dart';
+
 class MenuBottomSheet extends HookConsumerWidget {
   const MenuBottomSheet({
     Key? key,
-    required this.refreshDelegate,
   }) : super(key: key);
-
-  final MemoizedAsyncSnapshot refreshDelegate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -74,17 +72,16 @@ class MenuBottomSheet extends HookConsumerWidget {
                                       .read(boxProvider)
                                       .put(kBoxKeySecretApi, val),
                                 );
-                                await ref
-                                    .read(dioProvider)
-                                    .get('/user')
-                                    .then((value) {
+                                final res =
+                                    await ref.read(dioProvider).get('/user');
+                                ref.read(userProvider).state =
+                                    UserWrapper.fromJsonHive(res.data);
+                                unawaited(
                                   ref.read(boxProvider).put(
-                                      kBoxKeyUserLogin, value.data['login']);
-                                  ref.read(userProvider).state =
-                                      User.fromJson(value.data);
-                                  return value;
-                                });
-                                refreshDelegate.refresh();
+                                        kBoxKeyUserJson,
+                                        res.data,
+                                      ),
+                                );
                               } on DioError {
                                 ref
                                     .read(dioProvider)
@@ -110,7 +107,7 @@ class MenuBottomSheet extends HookConsumerWidget {
                   unawaited(ref.read(boxProvider).clear());
                 }
               },
-              child: Text(useUser.state?.login == null ? 'Log In' : 'Log Out'),
+              child: Text(useUser.state == null ? 'Log In' : 'Log Out'),
             ),
           ),
           const ListTile(
