@@ -101,97 +101,102 @@ class MyApp extends HookConsumerWidget {
       // TODO p2 refactor this layoutBuilder for soc & adaptive future state
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final _activityFeed = (ref.watch(userProvider).state != null)
-              ? (useGetUserReceivedEventsFuture.snapshot.connectionState !=
-                      ConnectionState.done)
-                  ? const CircularProgressIndicator.adaptive()
-                  : CustomScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      slivers: [
-                        CupertinoSliverRefreshControl(
-                          onRefresh: () => Future<void>.value(
-                            useGetUserReceivedEventsFuture.refresh(),
-                          ),
-                        ),
-                        SliverPadding(
-                          padding: const EdgeInsets.all(8.0),
-                          sliver: EventsList(
-                            rawFeed: useGetUserReceivedEventsFuture
-                                .snapshot.data!.data,
-                          ),
-                        ),
-                      ],
-                    )
-              : ListView(
-                  children:
-                      (useGetPublicEvents.snapshot.data!.data as List).map(
-                    (e) {
-                      var payload = e['type'];
-                      return Card(
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage:
-                                NetworkImage(e['actor']['avatar_url']),
-                          ),
-                          title: Text(e['repo']['name'] ?? 'error'),
-                          subtitle: Text(payload),
-                        ),
-                      );
-                    },
-                  ).toList(),
-                );
-          return constraints.maxWidth < 900
-              ? _activityFeed
-              : Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12.0),
-                            child: Text(
-                              'Activity Feed',
-                              style: Theme.of(context).textTheme.headline6,
-                            ),
-                          ),
-                          Expanded(child: _activityFeed),
-                        ],
-                      ),
+          final Widget _activityFeed;
+          if ((ref.watch(userProvider).state != null)) {
+            if ((useGetUserReceivedEventsFuture.snapshot.connectionState !=
+                ConnectionState.done)) {
+              _activityFeed = const CircularProgressIndicator.adaptive();
+            } else {
+              _activityFeed = CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  CupertinoSliverRefreshControl(
+                    onRefresh: () => Future<void>.value(
+                      useGetUserReceivedEventsFuture.refresh(),
                     ),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12.0),
-                            child: Text(
-                              'Trending Repos',
-                              style: Theme.of(context).textTheme.headline6,
-                            ),
-                          ),
-                          Expanded(
-                            child: CustomScrollView(
-                              physics: const BouncingScrollPhysics(),
-                              slivers: [
-                                CupertinoSliverRefreshControl(
-                                  onRefresh: () => Future<void>.value(
-                                    useGetTrendingRepos.refresh(),
-                                  ),
-                                ),
-                                SliverPadding(
-                                  padding: const EdgeInsets.all(8),
-                                  sliver: TrendingRepos(
-                                    trendingRepos:
-                                        useGetTrendingRepos.snapshot.data ?? [],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.all(8.0),
+                    sliver: EventsList(
+                      rawFeed:
+                          useGetUserReceivedEventsFuture.snapshot.data!.data,
                     ),
-                  ],
-                );
+                  ),
+                ],
+              );
+            }
+          } else {
+            _activityFeed = ListView(
+              children: (useGetPublicEvents.snapshot.data!.data as List).map(
+                (e) {
+                  var payload = e['type'];
+                  return Card(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: NetworkImage(e['actor']['avatar_url']),
+                      ),
+                      title: Text(e['repo']['name'] ?? 'error'),
+                      subtitle: Text(payload),
+                    ),
+                  );
+                },
+              ).toList(),
+            );
+          }
+          if (constraints.maxWidth < 900) {
+            return _activityFeed;
+          } else {
+            return Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Text(
+                          'Activity Feed',
+                          style: Theme.of(context).textTheme.headline6,
+                        ),
+                      ),
+                      Expanded(child: _activityFeed),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Text(
+                          'Trending Repos',
+                          style: Theme.of(context).textTheme.headline6,
+                        ),
+                      ),
+                      Expanded(
+                        child: CustomScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          slivers: [
+                            CupertinoSliverRefreshControl(
+                              onRefresh: () => Future<void>.value(
+                                useGetTrendingRepos.refresh(),
+                              ),
+                            ),
+                            SliverPadding(
+                              padding: const EdgeInsets.all(8),
+                              sliver: TrendingRepos(
+                                trendingRepos:
+                                    useGetTrendingRepos.snapshot.data ?? [],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
         },
       ),
     );
