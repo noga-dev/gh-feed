@@ -63,12 +63,12 @@ class MyApp extends HookConsumerWidget {
           ),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
+      body: OrientationBuilder(
+        builder: (context, orientation) {
           final child = ref.watch(userProvider).state == null
               ? const PublicEvents()
               : const EventsList();
-          return constraints.maxWidth < 700
+          return orientation == Orientation.portrait
               ? child
               : Row(
                   children: [
