@@ -76,9 +76,5 @@ Future<ProviderContainer> init() async {
   //       Settings.fromJson(container.read(boxProvider).get(kBoxKeySettings));
   // }
 
-  SystemChrome.setSystemUIOverlayStyle(
-    SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.black),
-  );
-
   return container;
 }
