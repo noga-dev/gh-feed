@@ -122,16 +122,6 @@ class MyApp extends HookConsumerWidget {
                       useGetUserReceivedEventsFuture.refresh(),
                     ),
                   ),
-                  SliverAppBar(
-                    pinned: true,
-                    title: Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: Text(
-                        'Activity Feed (${(eventsList as List).length})',
-                        style: Theme.of(context).textTheme.headline6,
-                      ),
-                    ),
-                  ),
                   SliverPadding(
                     padding: const EdgeInsets.all(8.0),
                     sliver: EventsList(
