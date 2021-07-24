@@ -37,7 +37,7 @@ class EventsList extends HookConsumerWidget {
           useRepos.value.add(SliverRepoItem(event: event));
         }
       }
-    });
+    }, [rawFeed]);
 
     final useSettingsListener = useValueListenable(
       ref.read(boxProvider).listenable(

@@ -109,6 +109,7 @@ class MyApp extends HookConsumerWidget {
       // TODO p2 refactor this layoutBuilder for soc & adaptive future state
       body: LayoutBuilder(
         builder: (context, constraints) {
+          final eventsList = useGetUserReceivedEventsFuture.snapshot.data!.data;
           final Widget _activityFeed;
           if ((ref.watch(userProvider).state != null)) {
             if ((useGetUserReceivedEventsFuture.snapshot.connectionState !=
@@ -126,8 +127,7 @@ class MyApp extends HookConsumerWidget {
                   SliverPadding(
                     padding: const EdgeInsets.all(8.0),
                     sliver: EventsList(
-                      rawFeed:
-                          useGetUserReceivedEventsFuture.snapshot.data!.data,
+                      rawFeed: eventsList,
                     ),
                   ),
                 ],
@@ -154,6 +154,7 @@ class MyApp extends HookConsumerWidget {
           if (constraints.maxWidth < 900) {
             return _activityFeed;
           } else {
+            final trendingList = useGetTrendingRepos.snapshot.data;
             return Row(
               children: [
                 Expanded(
@@ -162,7 +163,7 @@ class MyApp extends HookConsumerWidget {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
                         child: Text(
-                          'Activity Feed',
+                          'Activity Feed (${(eventsList as List).length})',
                           style: Theme.of(context).textTheme.headline6,
                         ),
                       ),
@@ -176,7 +177,7 @@ class MyApp extends HookConsumerWidget {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
                         child: Text(
-                          'Trending Repos',
+                          'Trending Repos (${(trendingList as List).length})',
                           style: Theme.of(context).textTheme.headline6,
                         ),
                       ),
@@ -192,8 +193,7 @@ class MyApp extends HookConsumerWidget {
                             SliverPadding(
                               padding: const EdgeInsets.all(8),
                               sliver: TrendingRepos(
-                                trendingRepos:
-                                    useGetTrendingRepos.snapshot.data ?? [],
+                                trendingRepos: trendingList ?? [],
                               ),
                             ),
                           ],
