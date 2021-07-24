@@ -77,10 +77,18 @@ class MyApp extends HookConsumerWidget {
                 ),
               ),
               onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (_) => const MenuBottomSheet(),
-                );
+                const child = MenuBottomSheet();
+                isMobileDevice
+                    ? showModalBottomSheet(
+                        context: context,
+                        builder: (_) => child,
+                      )
+                    : showDialog(
+                        context: context,
+                        builder: (_) => const Dialog(
+                          child: child,
+                        ),
+                      );
               },
             ),
           ),
