@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gaf/screens/main/app/requests_left.dart';
 import 'package:gaf/utils/mock_data.dart';
 import 'package:gh_trend/gh_trend.dart';
@@ -151,7 +152,7 @@ class MyApp extends HookConsumerWidget {
               ).toList(),
             );
           }
-          if (constraints.maxWidth < 900) {
+          if (constraints.maxWidth < 700) {
             return _activityFeed;
           } else {
             if (useGetTrendingRepos.snapshot.connectionState !=
@@ -214,6 +215,22 @@ class MyApp extends HookConsumerWidget {
           }
         },
       ),
+      bottomNavigationBar: MediaQuery.of(context).size.width < 700
+          ? BottomNavigationBar(
+              currentIndex: ref.watch(pageIndexProvider).state,
+              onTap: (value) => ref.read(pageIndexProvider).state = value,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.feed),
+                  label: 'Feed',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.trending_up),
+                  label: 'Trending',
+                ),
+              ],
+            )
+          : null,
     );
   }
 }
