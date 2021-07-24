@@ -11,8 +11,8 @@ import '../../../utils/common.dart';
 import '../../../utils/providers.dart';
 import '../../../utils/settings.dart';
 
-class MenuBottomSheet extends HookConsumerWidget {
-  const MenuBottomSheet({
+class SettingsView extends HookConsumerWidget {
+  const SettingsView({
     Key? key,
   }) : super(key: key);
 

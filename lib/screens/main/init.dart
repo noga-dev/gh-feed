@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:gaf/models/user.dart';
 import 'package:gaf/utils/common.dart';
 import 'package:gaf/utils/settings.dart';
@@ -68,13 +66,6 @@ Future<ProviderContainer> init() async {
       box.get(kBoxKeyUserJson),
     );
   }
-
-  // container.read(boxProvider).listenable();
-
-  // else {
-  //   container.read(settingsProvider).state =
-  //       Settings.fromJson(container.read(boxProvider).get(kBoxKeySettings));
-  // }
 
   return container;
 }

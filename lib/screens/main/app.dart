@@ -77,7 +77,7 @@ class MyApp extends HookConsumerWidget {
                 ),
               ),
               onPressed: () {
-                const child = MenuBottomSheet();
+                const child = SettingsView();
                 isMobileDevice
                     ? showModalBottomSheet(
                         context: context,

@@ -131,7 +131,7 @@ class SliverRepoItem extends HookConsumerWidget {
       child: Column(
         children: [
           const SizedBox(height: 8),
-          EventCard(
+          EventsListView(
             title: EventTitle(
               event: event,
             ),

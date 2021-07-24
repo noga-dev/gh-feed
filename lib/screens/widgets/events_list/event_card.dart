@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gaf/theme/github_colors.dart';
 
-class EventCard extends StatelessWidget {
-  const EventCard({
+class EventsListView extends StatelessWidget {
+  const EventsListView({
     Key? key,
     required this.title,
     required this.content,
