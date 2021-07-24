@@ -20,6 +20,7 @@ class TrendingRepos extends HookConsumerWidget {
         dateRange: GhTrendDateRange.today,
         proxy: kIsWeb ? 'https://cors.bridged.cc/' : '',
       ),
+      keys: [ref.read(userProvider)],
     );
 
     if (!useGetTrendingRepos.snapshot.hasData) {

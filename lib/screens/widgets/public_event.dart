@@ -8,8 +8,8 @@ class PublicEvents extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final useGetPublicEvents = useMemoizedFuture(
-      () => ref.read(dioProvider).get('/events'),
-    );
+        () => ref.read(dioProvider).get('/events'),
+        keys: [ref.read(userProvider)]);
 
     if (!useGetPublicEvents.snapshot.hasData) {
       return const Center(child: CircularProgressIndicator.adaptive());

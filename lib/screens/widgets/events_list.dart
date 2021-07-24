@@ -5,7 +5,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gaf/utils/common.dart';
-import 'package:gaf/utils/mock_data.dart';
 import 'package:gaf/utils/settings.dart';
 import 'package:github/github.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -34,7 +33,7 @@ class EventsList extends HookConsumerWidget {
         }
         return Future.value(null);
       },
-      keys: [ref.read(userProvider).state?.login ?? mockDefaultUsername],
+      keys: [ref.read(userProvider)],
     );
 
     if (!useGetUserReceivedEventsFuture.snapshot.hasData) {
