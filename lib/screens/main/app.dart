@@ -65,16 +65,15 @@ class MyApp extends HookConsumerWidget {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final user = ref.watch(userProvider).state;
+          final child = ref.watch(userProvider).state == null
+              ? const PublicEvents()
+              : const EventsList();
           if (constraints.maxWidth < 700) {
-            return user == null ? const PublicEvents() : const EventsList();
+            return child;
           } else {
             return Row(
               children: [
-                Expanded(
-                  child:
-                      user == null ? const PublicEvents() : const EventsList(),
-                ),
+                Expanded(child: child),
                 const Expanded(
                   child: TrendingRepos(),
                 ),

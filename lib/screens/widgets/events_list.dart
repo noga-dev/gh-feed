@@ -68,8 +68,6 @@ class EventsList extends HookConsumerWidget {
       useFilteredRepos.value = useRepos.value.toList();
     }
 
-    print(useFilteredRepos.value.length);
-
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
