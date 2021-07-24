@@ -68,18 +68,16 @@ class MyApp extends HookConsumerWidget {
           final child = ref.watch(userProvider).state == null
               ? const PublicEvents()
               : const EventsList();
-          if (constraints.maxWidth < 700) {
-            return child;
-          } else {
-            return Row(
-              children: [
-                Expanded(child: child),
-                const Expanded(
-                  child: TrendingRepos(),
-                ),
-              ],
-            );
-          }
+          return constraints.maxWidth < 700
+              ? child
+              : Row(
+                  children: [
+                    Expanded(child: child),
+                    const Expanded(
+                      child: TrendingRepos(),
+                    ),
+                  ],
+                );
         },
       ),
       bottomNavigationBar: MediaQuery.of(context).size.width < 700
