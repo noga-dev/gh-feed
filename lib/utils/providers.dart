@@ -19,6 +19,8 @@ final settingsProvider = StateProvider<Settings>((ref) => Settings());
 final reposCacheProvider = StateProvider<List<Repository>>((ref) => []);
 final requestsCountProvider = StateProvider<int>((ref) => 0);
 
+final pageIndexProvider = StateProvider<int>((ref) => 0);
+
 /// Stores an [AsyncSnapshot] as well as a reference to a function [refresh]
 /// that should re-call the future that was used to generate the [snapshot].
 class MemoizedAsyncSnapshot<T> {
