@@ -19,9 +19,6 @@ class MyApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // final useUserLogin = useState<String>(
-    //     ref.read(boxProvider).get(kBoxKeyUserLogin) ?? defaultUserLogin);
-
     final useGetTrendingRepos = useMemoizedFuture(
       () => ghTrendingRepositories(
         spokenLanguageCode: 'en',
@@ -106,14 +103,15 @@ class MyApp extends HookConsumerWidget {
           ),
         ],
       ),
-      // TODO p2 refactor this layoutBuilder for soc & adaptive future state
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final eventsList = useGetUserReceivedEventsFuture.snapshot.data!.data;
+          // TODO p3 fix items counter after filter
           final Widget _activityFeed;
           if ((ref.watch(userProvider).state != null)) {
-            if ((useGetUserReceivedEventsFuture.snapshot.connectionState !=
-                ConnectionState.done)) {
+            final eventsList =
+                useGetUserReceivedEventsFuture.snapshot.data?.data;
+            if (useGetUserReceivedEventsFuture.snapshot.connectionState !=
+                ConnectionState.done) {
               _activityFeed = const CircularProgressIndicator.adaptive();
             } else {
               _activityFeed = CustomScrollView(
@@ -122,6 +120,16 @@ class MyApp extends HookConsumerWidget {
                   CupertinoSliverRefreshControl(
                     onRefresh: () => Future<void>.value(
                       useGetUserReceivedEventsFuture.refresh(),
+                    ),
+                  ),
+                  SliverAppBar(
+                    pinned: true,
+                    title: Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: Text(
+                        'Activity Feed (${(eventsList as List).length})',
+                        style: Theme.of(context).textTheme.headline6,
+                      ),
                     ),
                   ),
                   SliverPadding(
@@ -154,23 +162,14 @@ class MyApp extends HookConsumerWidget {
           if (constraints.maxWidth < 900) {
             return _activityFeed;
           } else {
+            if ((useGetTrendingRepos.snapshot.connectionState !=
+                ConnectionState.done)) {
+              return const CircularProgressIndicator.adaptive();
+            }
             final trendingList = useGetTrendingRepos.snapshot.data;
             return Row(
               children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: Text(
-                          'Activity Feed (${(eventsList as List).length})',
-                          style: Theme.of(context).textTheme.headline6,
-                        ),
-                      ),
-                      Expanded(child: _activityFeed),
-                    ],
-                  ),
-                ),
+                Expanded(child: _activityFeed),
                 Expanded(
                   child: Column(
                     children: [

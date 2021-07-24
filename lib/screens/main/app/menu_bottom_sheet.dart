@@ -9,7 +9,6 @@ import '../../../models/user.dart';
 import '../../../theme/github_colors.dart';
 import '../../../utils/common.dart';
 import '../../../utils/providers.dart';
-import '../../../utils/settings.dart';
 
 class SettingsView extends HookConsumerWidget {
   const SettingsView({
@@ -82,6 +81,7 @@ class SettingsView extends HookConsumerWidget {
                                         res.data,
                                       ),
                                 );
+                                ref.read(requestsCountProvider).state = -1;
                               } on DioError {
                                 ref
                                     .read(dioProvider)
@@ -142,11 +142,7 @@ class SettingsView extends HookConsumerWidget {
                     MaterialStateProperty.all(Colors.lightBlue.shade900),
               ),
               onPressed: () async {
-                await ref.read(boxProvider).delete(kBoxKeySettings);
-                await ref.read(boxProvider).put(
-                      kBoxKeySettings,
-                      Settings().toJson(),
-                    );
+                unawaited(ref.read(boxProvider).delete(kBoxKeySettings));
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(

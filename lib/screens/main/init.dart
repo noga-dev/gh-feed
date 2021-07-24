@@ -4,7 +4,6 @@ import 'package:gaf/utils/common.dart';
 import 'package:gaf/utils/settings.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:very_good_analysis/very_good_analysis.dart';
 
 import '../../utils/providers.dart';
 
@@ -57,15 +56,17 @@ Future<ProviderContainer> init() async {
       ),
     );
 
-  if (!box.containsKey(kBoxKeySettings)) {
-    unawaited(box.put(kBoxKeySettings, Settings().toJson()));
-  }
-
   if (box.containsKey(kBoxKeyUserJson)) {
     container.read(userProvider).state = UserWrapper.fromJsonHive(
       box.get(kBoxKeyUserJson),
     );
   }
+
+  box.listenable(keys: [kBoxKeySettings]).addListener(
+    () => container.read(settingsProvider).state = Settings.fromJson(
+      box.get(kBoxKeySettings, defaultValue: Settings().toJson()),
+    ),
+  );
 
   return container;
 }

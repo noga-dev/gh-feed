@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:gaf/utils/settings.dart';
 import 'package:github/github.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,7 +13,9 @@ final boxProvider = Provider<Box>((ref) => Hive.box(kBoxSharedPrefs));
 
 final userProvider = StateProvider<User?>((ref) => null);
 
-// TODO p3 put and retrieve from box
+final settingsProvider = StateProvider<Settings>((ref) => Settings());
+
+// TODO p3 put and retrieve from box?
 final reposCacheProvider = StateProvider<List<Repository>>((ref) => []);
 final requestsCountProvider = StateProvider<int>((ref) => 0);
 

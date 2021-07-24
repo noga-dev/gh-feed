@@ -8,7 +8,6 @@ import 'package:gaf/utils/settings.dart';
 import 'package:github/github.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../theme/app_themes.dart';
 import '../../utils/providers.dart';
@@ -39,16 +38,13 @@ class EventsList extends HookConsumerWidget {
       }
     }, [rawFeed]);
 
-    final useSettingsListener = useValueListenable(
-      ref.read(boxProvider).listenable(
-        keys: [kBoxKeySettings],
-      ),
-    );
+    // final useSettingsListener = useValueListenable(
+    //   ref.read(boxProvider).listenable(
+    //     keys: [kBoxKeySettings],
+    //   ),
+    // );
 
-    // TODO p2 fix repo itemCount adding instead of setting
-    if (Settings.fromJson(useSettingsListener.get(kBoxKeySettings,
-            defaultValue: Settings().toJson()))
-        .filterPushEvents) {
+    if (ref.watch(settingsProvider).state.filterPushEvents) {
       useFilteredRepos.value = useRepos.value
           .where((element) => element.event.type != 'PushEvent')
           .toList();
@@ -56,12 +52,10 @@ class EventsList extends HookConsumerWidget {
       useFilteredRepos.value = useRepos.value.toList();
     }
 
-    // TODO p4 add animation
-    return SliverAnimatedList(
-      itemBuilder: (context, idx, anim) {
-        return useFilteredRepos.value[idx];
-      },
-      initialItemCount: useRepos.value.length,
+    print(useFilteredRepos.value.length);
+
+    return SliverList(
+      delegate: SliverChildListDelegate(useFilteredRepos.value),
     );
   }
 }
