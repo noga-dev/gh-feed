@@ -110,7 +110,9 @@ class MyApp extends HookConsumerWidget {
           if ((ref.watch(userProvider).state != null)) {
             if (useGetUserReceivedEventsFuture.snapshot.connectionState !=
                 ConnectionState.done) {
-              _activityFeed = const CircularProgressIndicator.adaptive();
+              _activityFeed = const Center(
+                child: CircularProgressIndicator.adaptive(),
+              );
             } else {
               final eventsList =
                   useGetUserReceivedEventsFuture.snapshot.data?.data;
