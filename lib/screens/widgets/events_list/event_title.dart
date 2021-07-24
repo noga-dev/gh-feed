@@ -68,6 +68,47 @@ class EventTitle extends StatelessWidget {
           );
         }
         break;
+      case 'DeleteEvent':
+        print(event.payload);
+        if (event.payload!['ref_type'] == 'branch') {
+          textSpanList.addAll([
+            TextSpan(
+              text: event.actor!.login,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const TextSpan(
+              text: ' deleted branch ',
+            ),
+            TextSpan(
+              style: GoogleFonts.firaCode(),
+              text: '${event.payload!['ref']}',
+            ),
+            const TextSpan(
+              text: ' at ',
+            ),
+            TextSpan(
+              text: event.repo!.name,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ]);
+        } else {
+          textSpanList.addAll([
+            TextSpan(
+              text: event.actor!.login,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const TextSpan(
+              text: ' deleted ',
+            ),
+          ]);
+        }
+        break;
       case ('ForkEvent'):
         textSpanList.addAll(
           [
