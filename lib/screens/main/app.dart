@@ -108,12 +108,12 @@ class MyApp extends HookConsumerWidget {
           // TODO p3 fix items counter after filter
           final Widget _activityFeed;
           if ((ref.watch(userProvider).state != null)) {
-            final eventsList =
-                useGetUserReceivedEventsFuture.snapshot.data?.data;
             if (useGetUserReceivedEventsFuture.snapshot.connectionState !=
                 ConnectionState.done) {
               _activityFeed = const CircularProgressIndicator.adaptive();
             } else {
+              final eventsList =
+                  useGetUserReceivedEventsFuture.snapshot.data?.data;
               _activityFeed = CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
@@ -162,14 +162,30 @@ class MyApp extends HookConsumerWidget {
           if (constraints.maxWidth < 900) {
             return _activityFeed;
           } else {
-            if ((useGetTrendingRepos.snapshot.connectionState !=
-                ConnectionState.done)) {
+            if (useGetTrendingRepos.snapshot.connectionState !=
+                ConnectionState.done) {
               return const CircularProgressIndicator.adaptive();
             }
             final trendingList = useGetTrendingRepos.snapshot.data;
             return Row(
               children: [
-                Expanded(child: _activityFeed),
+                if (ref.read(userProvider).state == null)
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: Text(
+                            'Activity Feed',
+                            style: Theme.of(context).textTheme.headline6,
+                          ),
+                        ),
+                        Expanded(child: _activityFeed),
+                      ],
+                    ),
+                  ),
+                if (ref.read(userProvider).state != null)
+                  Expanded(child: _activityFeed),
                 Expanded(
                   child: Column(
                     children: [
