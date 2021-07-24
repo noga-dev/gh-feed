@@ -23,6 +23,7 @@ class PublicEvents extends HookConsumerWidget {
       );
     }
 
+    // TODO p5 switch to sliver
     return Column(
       children: [
         Padding(
