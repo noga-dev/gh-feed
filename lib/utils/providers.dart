@@ -15,7 +15,7 @@ final userProvider = StateProvider<User?>((ref) => null);
 
 final settingsProvider = StateProvider<Settings>((ref) => Settings());
 
-// TODO p3 put and retrieve from box?
+// TODO p3 put and retrieve from box to preserve requests?
 final reposCacheProvider = StateProvider<List<Repository>>((ref) => []);
 final requestsCountProvider = StateProvider<int>((ref) => 0);
 

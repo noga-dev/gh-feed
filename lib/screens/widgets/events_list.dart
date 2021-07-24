@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gaf/utils/common.dart';
@@ -18,31 +19,45 @@ import 'events_list/repo_preview.dart';
 class EventsList extends HookConsumerWidget {
   const EventsList({
     Key? key,
-    required this.rawFeed,
   }) : super(key: key);
-
-  final dynamic rawFeed;
 
   @override
   Widget build(context, ref) {
     final useRepos = useState(<SliverRepoItem>[]);
     final useFilteredRepos = useState(<SliverRepoItem>[]);
+    final useGetUserReceivedEventsFuture = useMemoizedFuture(
+      () async {
+        if (ref.read(userProvider).state != null) {
+          return ref.read(dioProvider).get(
+              '/users/${ref.read(userProvider).state!.login}/received_events');
+        }
+        return Future.value(null);
+      },
+      keys: [ref.read(userProvider)],
+    );
+
+    if (!useGetUserReceivedEventsFuture.snapshot.hasData) {
+      return const Center(child: CircularProgressIndicator.adaptive());
+    }
+
+    if (useGetUserReceivedEventsFuture.snapshot.hasError) {
+      Center(
+        child: Text(
+          useGetUserReceivedEventsFuture.snapshot.error.toString(),
+        ),
+      );
+    }
+
     /*TODO P2: for PR, Issue, IssueComment, and Fork events show relevant
        details instead of repo preview*/
     useEffect(() {
-      for (var item in rawFeed) {
+      for (var item in useGetUserReceivedEventsFuture.snapshot.data!.data) {
         final event = Event.fromJson(item);
         if (event.payload!.isNotEmpty) {
           useRepos.value.add(SliverRepoItem(event: event));
         }
       }
-    }, [rawFeed]);
-
-    // final useSettingsListener = useValueListenable(
-    //   ref.read(boxProvider).listenable(
-    //     keys: [kBoxKeySettings],
-    //   ),
-    // );
+    }, [useGetUserReceivedEventsFuture.snapshot.data!.data]);
 
     if (ref.watch(settingsProvider).state.filterPushEvents) {
       useFilteredRepos.value = useRepos.value
@@ -52,10 +67,31 @@ class EventsList extends HookConsumerWidget {
       useFilteredRepos.value = useRepos.value.toList();
     }
 
-    print(useFilteredRepos.value.length);
-
-    return SliverList(
-      delegate: SliverChildListDelegate(useFilteredRepos.value),
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        CupertinoSliverRefreshControl(
+          onRefresh: () => Future<void>.value(
+            useGetUserReceivedEventsFuture.refresh(),
+          ),
+        ),
+        SliverAppBar(
+          pinned: true,
+          title: Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: Text(
+              'Activity Feed',
+              style: Theme.of(context).textTheme.headline6,
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.all(8.0),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate(useFilteredRepos.value),
+          ),
+        ),
+      ],
     );
   }
 }

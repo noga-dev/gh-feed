@@ -69,7 +69,6 @@ class EventTitle extends StatelessWidget {
         }
         break;
       case 'DeleteEvent':
-        print(event.payload);
         if (event.payload!['ref_type'] == 'branch') {
           textSpanList.addAll([
             TextSpan(
