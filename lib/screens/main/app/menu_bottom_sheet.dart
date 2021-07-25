@@ -81,7 +81,6 @@ class SettingsView extends HookConsumerWidget {
                                         res.data,
                                       ),
                                 );
-                                ref.read(requestsCountProvider).state = -1;
                               } on DioError {
                                 ref
                                     .read(dioProvider)
@@ -106,6 +105,7 @@ class SettingsView extends HookConsumerWidget {
                 } else {
                   unawaited(ref.read(boxProvider).clear());
                   ref.read(userProvider).state = null;
+                  ref.read(requestsCountProvider).state = -1;
                 }
               },
               child: Text(useUser.state == null ? 'Log In' : 'Log Out'),
