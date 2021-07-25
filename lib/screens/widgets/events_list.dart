@@ -28,8 +28,11 @@ class EventsList extends HookConsumerWidget {
     final useGetUserReceivedEventsFuture = useMemoizedFuture(
       () async {
         if (ref.read(userProvider).state != null) {
-          return ref.read(dioProvider).get(
-              '/users/${ref.read(userProvider).state!.login}/received_events');
+          return ref.read(
+            futureProvider(
+              '/users/${ref.read(userProvider).state!.login}/received_events',
+            ),
+          );
         }
         return Future.value(null);
       },

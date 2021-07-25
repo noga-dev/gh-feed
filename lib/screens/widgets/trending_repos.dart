@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gaf/utils/providers.dart';
-import 'package:gh_trend/gh_trend.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -15,12 +14,8 @@ class TrendingRepos extends HookConsumerWidget {
   @override
   Widget build(context, ref) {
     final useGetTrendingRepos = useMemoizedFuture(
-      () => ghTrendingRepositories(
-        spokenLanguageCode: 'en',
-        dateRange: GhTrendDateRange.today,
-        proxy: kIsWeb ? 'https://cors.bridged.cc/' : '',
-      ),
-      keys: [ref.read(userProvider)],
+      () => ref.read(trendingReposProvider),
+      keys: [],
     );
 
     if (!useGetTrendingRepos.snapshot.hasData) {
