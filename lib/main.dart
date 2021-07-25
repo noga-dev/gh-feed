@@ -7,18 +7,29 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'screens/main/app.dart';
 
 Future<void> main() async {
-  final container = await init();
-
-  runApp(
-    UncontrolledProviderScope(
-      container: container,
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Github Feeder',
-        theme: themeDataLight,
-        darkTheme: themeDataDark,
-        themeMode: ThemeMode.dark,
-        home: const MyApp(),
+  InitializerNotifier().addListener(
+    (state) => runApp(
+      state.when(
+        error: (err, stack) => const Center(),
+        loading: () => const Material(
+          color: Colors.black,
+          child: Center(
+            child: CircularProgressIndicator.adaptive(
+              backgroundColor: Colors.amber,
+            ),
+          ),
+        ),
+        data: (data) => UncontrolledProviderScope(
+          container: data,
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Github Feeder',
+            theme: themeDataLight,
+            darkTheme: themeDataDark,
+            themeMode: ThemeMode.dark,
+            home: const MyApp(),
+          ),
+        ),
       ),
     ),
   );
