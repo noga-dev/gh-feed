@@ -1,6 +1,3 @@
-import 'dart:convert';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -23,84 +20,76 @@ class EventsList extends HookConsumerWidget {
 
   @override
   Widget build(context, ref) {
-    final useRepos = useState(<SliverRepoItem>[]);
-    final useFilteredRepos = useState(<SliverRepoItem>[]);
-    final useGetUserReceivedEventsFuture = useMemoizedFuture(
-      () async {
-        if (ref.read(userProvider).state != null) {
-          return ref.read(
-            futureProvider(
-              '/users/${ref.read(userProvider).state!.login}/received_events',
-            ),
-          );
-        }
-        return Future.value(null);
-      },
-      keys: [ref.read(userProvider)],
-    );
-
-    if (!useGetUserReceivedEventsFuture.snapshot.hasData) {
-      return const Center(child: CircularProgressIndicator.adaptive());
-    }
-
-    if (useGetUserReceivedEventsFuture.snapshot.hasError) {
-      Center(
-        child: Text(
-          useGetUserReceivedEventsFuture.snapshot.error.toString(),
-        ),
-      );
-    }
-
-    /*TODO P2: for PR, Issue, IssueComment, and Fork events show relevant
-       details instead of repo preview*/
-    useEffect(() {
-      for (var item in useGetUserReceivedEventsFuture.snapshot.data!.data) {
-        final event = Event.fromJson(item);
-        if (event.payload!.isNotEmpty) {
-          useRepos.value.add(SliverRepoItem(event: event));
-        }
-      }
-    }, [useGetUserReceivedEventsFuture.snapshot.data!.data]);
-
-    if (ref.watch(settingsProvider).state.filterPushEvents) {
-      useFilteredRepos.value = useRepos.value
-          .where((element) => element.event.type != 'PushEvent')
-          .toList();
-    } else {
-      useFilteredRepos.value = useRepos.value.toList();
-    }
-
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        CupertinoSliverRefreshControl(
-          onRefresh: () => Future<void>.value(
-            useGetUserReceivedEventsFuture.refresh(),
+    final useEvents = useState(<SliverEventItem>[]);
+    final useFilteredEvents = useState(<SliverEventItem>[]);
+    return ref
+        .watch(
+          dioGetProvider(
+            '/users/${ref.read(userProvider).state!.login}/received_events',
           ),
-        ),
-        SliverAppBar(
-          pinned: true,
-          title: Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: Text(
-              'Activity Feed',
-              style: Theme.of(context).textTheme.headline6,
-            ),
-          ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.all(8.0),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate(useFilteredRepos.value),
-          ),
-        ),
-      ],
-    );
+        )
+        .when(
+          loading: () => const CircularProgressIndicator.adaptive(),
+          error: (err, stack) => Text(err.toString()),
+          data: (response) {
+            /* TODO P2: for PR, Issue, IssueComment, and
+            Fork events show relevant
+            details instead of repo preview*/
+            useEffect(() {
+              for (var item in response.data) {
+                final event = Event.fromJson(item);
+                if (event.payload!.isNotEmpty) {
+                  useEvents.value.add(SliverEventItem(event: event));
+                }
+              }
+            }, [response.data]);
+
+            if (ref.watch(settingsProvider).state.filterPushEvents) {
+              useFilteredEvents.value = useEvents.value
+                  .where((element) => element.event.type != 'PushEvent')
+                  .toList();
+            } else {
+              useFilteredEvents.value = useEvents.value.toList();
+            }
+
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                CupertinoSliverRefreshControl(
+                  onRefresh: () async {
+                    ref.refresh(
+                      dioGetProvider(
+                        '/users/${ref.read(userProvider).state!.login}/received_events',
+                      ),
+                    );
+                    return Future<void>.value();
+                  },
+                ),
+                SliverAppBar(
+                  pinned: true,
+                  title: Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: Text(
+                      'Activity Feed',
+                      style: Theme.of(context).textTheme.headline6,
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.all(8.0),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate(useFilteredEvents.value),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
   }
 }
 
-class SliverRepoItem extends HookConsumerWidget {
-  const SliverRepoItem({
+class SliverEventItem extends HookConsumerWidget {
+  const SliverEventItem({
     Key? key,
     required this.event,
   }) : super(key: key);
@@ -109,122 +98,76 @@ class SliverRepoItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final useGetRepoDetails = useMemoizedFuture(() async {
-      if (ref
-          .read(reposCacheProvider)
-          .state
-          .where((element) => element.fullName == event.repo!.name)
-          .isNotEmpty) {
-        return Future.value(
-          Response(
-            requestOptions: RequestOptions(
-              path: '',
-            ),
-            data: jsonDecode(
-              jsonEncode(
-                ref.read(reposCacheProvider).state.firstWhere(
-                    (element) => element.fullName == event.repo!.name),
-              ),
-            ),
-          ),
-        );
-      }
-
-      final result = ref.read(dioProvider).get('/repos/${event.repo!.name}');
-      await result.then(
-        (value) => ref.read(reposCacheProvider).state.add(
-              Repository.fromJson(value.data),
-            ),
-      );
-      return result;
-    });
-
-    final settingsBox = ref.read(boxProvider);
     final useSettingsState = useState(
       Settings.fromJson(
-          settingsBox.get(kBoxKeySettings, defaultValue: Settings().toJson())),
+        ref.read(boxProvider).get(
+              kBoxKeySettings,
+              defaultValue: Settings().toJson(),
+            ),
+      ),
     );
 
-    if (event.type == 'PushEvent' && useSettingsState.value.filterPushEvents) {
-      return const SizedBox.shrink();
-    }
+    return ref.watch(dioGetProvider('/repos/${event.repo!.name}')).when(
+          loading: () => const CircularProgressIndicator.adaptive(),
+          error: (err, stack) => Text(err.toString()),
+          data: (data) {
+            if (event.type == 'PushEvent' &&
+                useSettingsState.value.filterPushEvents) {
+              return const SizedBox.shrink();
+            }
 
-    if (event.type == 'DeleteEvent' &&
-        useSettingsState.value.filterDeleteEvents) {
-      return const SizedBox.shrink();
-    }
+            if (event.type == 'DeleteEvent' &&
+                useSettingsState.value.filterDeleteEvents) {
+              return const SizedBox.shrink();
+            }
 
-    return Card(
-      color: Theme.of(context).brightness == Brightness.dark
-          ? themeDataDark.cardColor
-          : themeDataLight.cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 8),
-          EventsListView(
-            title: EventTitle(
-              event: event,
-            ),
-            content: Column(
-              children: [
-                if (useGetRepoDetails.snapshot.hasData)
-                  RepoPreview(
-                    repo: Repository.fromJson(
-                      useGetRepoDetails.snapshot.data!.data,
-                    ),
-                  )
-                else if (useGetRepoDetails.snapshot.hasError)
-                  ErrorPreview(
-                    request: useGetRepoDetails.snapshot.data?.requestOptions
-                            .toString() ??
-                        'null',
-                    error: useGetRepoDetails.snapshot.error.toString(),
-                  )
-                else if (!(useGetRepoDetails.snapshot.connectionState ==
-                    ConnectionState.done))
-                  const SizedBox(
-                    height: RepoPreview.totalPreviewBoxHeight,
-                    child: LinearProgressIndicator(),
-                  ),
-                // if (event.type != 'PushEvent' &&
-                //     event.type != 'WatchEvent' &&
-                //     event.type != 'ForkEvent' &&
-                //     event.type != 'CreateEvent' &&
-                //     event.type != 'IssueCommentEvent' &&
-                //     event.type != 'ReleaseEvent') ...[
-                //   ListTile(
-                //     leading: const Text('Type'),
-                //     title: Text(
-                //       event.type!,
-                //     ),
-                //   ),
-                // ],
-                if (event.type == 'IssueCommentEvent') ...[
+            return Card(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? themeDataDark.cardColor
+                  : themeDataLight.cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                children: [
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      TextButton.icon(
-                        icon: const Icon(Icons.exit_to_app),
-                        label: const Text('View issue'),
-                        onPressed: () async {
-                          if (await canLaunch(
-                              event.payload!['issue']['html_url'])) {
-                            await launch(event.payload!['issue']['html_url']);
-                          }
-                        },
-                      ),
-                    ],
+                  EventsListView(
+                    title: EventTitle(
+                      event: event,
+                    ),
+                    content: Column(
+                      children: [
+                        RepoPreview(
+                          repo: Repository.fromJson(
+                            data.data,
+                          ),
+                        ),
+                        if (event.type == 'IssueCommentEvent') ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              TextButton.icon(
+                                icon: const Icon(Icons.exit_to_app),
+                                label: const Text('View issue'),
+                                onPressed: () async {
+                                  if (await canLaunch(
+                                      event.payload!['issue']['html_url'])) {
+                                    await launch(
+                                        event.payload!['issue']['html_url']);
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+              ),
+            );
+          },
+        );
   }
 }
 

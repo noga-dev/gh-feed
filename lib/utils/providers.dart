@@ -13,11 +13,15 @@ import 'common.dart';
 final dioProvider = Provider<Dio>((ref) => Dio());
 final boxProvider = Provider<Box>((ref) => Hive.box(kBoxSharedPrefs));
 
-final futureProvider = Provider.family(
+final httpGetProvider = Provider.family(
   (ref, String param) => ref.read(dioProvider).get(param),
 );
 
-final trendingReposProvider = Provider(
+final dioGetProvider = FutureProvider.family(
+  (ref, String param) => ref.read(dioProvider).get(param),
+);
+
+final trendingReposProvider = FutureProvider(
   (ref) => ghTrendingRepositories(
     spokenLanguageCode: 'en',
     dateRange: GhTrendDateRange.today,
@@ -30,7 +34,6 @@ final userProvider = StateProvider<User?>((ref) => null);
 final settingsProvider = StateProvider<Settings>((ref) => Settings());
 
 // TODO p3 put and retrieve from box to preserve requests?
-final reposCacheProvider = StateProvider<List<Repository>>((ref) => []);
 final requestsCountProvider = StateProvider<int>((ref) => 0);
 
 final pageIndexProvider = StateProvider<int>((ref) => 0);

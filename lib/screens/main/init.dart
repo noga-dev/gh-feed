@@ -36,6 +36,10 @@ Future<ProviderContainer> init() async {
     )
     ..interceptors.add(
       InterceptorsWrapper(
+        onRequest: (request, handler) {
+          // print(request.path);
+          return handler.next(request);
+        },
         onError: (error, handler) {
           if (error.response != null) {
             return handler.reject(
@@ -47,6 +51,7 @@ Future<ProviderContainer> init() async {
               ),
             );
           }
+          return handler.next(error);
         },
         onResponse: (response, handler) {
           container.read(requestsCountProvider).state = int.parse(

@@ -8,7 +8,7 @@ class PublicEvents extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final useGetPublicEvents = useMemoizedFuture(
-        () => ref.read(futureProvider('/events')),
+        () => ref.read(httpGetProvider('/events')),
         keys: [ref.read(userProvider)]);
 
     if (!useGetPublicEvents.snapshot.hasData) {
