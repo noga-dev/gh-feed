@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:github/github.dart';
 import 'package:groovin_widgets/groovin_widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:very_good_analysis/very_good_analysis.dart';
@@ -29,11 +30,11 @@ class SettingsView extends HookConsumerWidget {
           ListTile(
             leading: CircleAvatar(
               backgroundImage: NetworkImage(
-                useUser.state?.avatarUrl ?? defaultAvatar,
+                useUser.state.avatarUrl ?? defaultAvatar,
               ),
             ),
             title: Text(
-              useUser.state?.login ?? 'Anonymous',
+              useUser.state.login ?? 'Anonymous',
               style: Theme.of(context).textTheme.headline6,
             ),
             trailing: OutlinedButton(
@@ -45,7 +46,7 @@ class SettingsView extends HookConsumerWidget {
                 ),
               ),
               onPressed: () {
-                if (useUser.state == null) {
+                if (useUser.state.login == null) {
                   showDialog(
                     context: context,
                     builder: (_) => SimpleDialog(
@@ -104,11 +105,11 @@ class SettingsView extends HookConsumerWidget {
                   );
                 } else {
                   unawaited(ref.read(boxProvider).clear());
-                  ref.read(userProvider).state = null;
+                  ref.read(userProvider).state = User();
                   ref.read(requestsCountProvider).state = -1;
                 }
               },
-              child: Text(useUser.state == null ? 'Log In' : 'Log Out'),
+              child: Text(useUser.state.login == null ? 'Log In' : 'Log Out'),
             ),
           ),
           const ListTile(

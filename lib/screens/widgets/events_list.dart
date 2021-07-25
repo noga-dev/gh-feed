@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_themes.dart';
 import '../../utils/providers.dart';
+import 'common/list_viewer.dart';
 import 'events_list/event_card.dart';
 import 'events_list/event_title.dart';
 import 'events_list/repo_preview.dart';
@@ -25,7 +26,7 @@ class EventsList extends HookConsumerWidget {
     return ref
         .watch(
           dioGetProvider(
-            '/users/${ref.read(userProvider).state!.login}/received_events',
+            '/users/${ref.read(userProvider).state.login}/received_events',
           ),
         )
         .when(
@@ -52,36 +53,11 @@ class EventsList extends HookConsumerWidget {
               useFilteredEvents.value = useEvents.value.toList();
             }
 
-            return CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                CupertinoSliverRefreshControl(
-                  onRefresh: () async {
-                    ref.refresh(
-                      dioGetProvider(
-                        '/users/${ref.read(userProvider).state!.login}/received_events',
-                      ),
-                    );
-                    return Future<void>.value();
-                  },
-                ),
-                SliverAppBar(
-                  pinned: true,
-                  title: Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: Text(
-                      'Activity Feed',
-                      style: Theme.of(context).textTheme.headline6,
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.all(8.0),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate(useFilteredEvents.value),
-                  ),
-                ),
-              ],
+            return ListViewer(
+              refreshFunc: () => ref.refresh(dioGetProvider(
+                  '/users/${ref.read(userProvider).state.login}/received_events')),
+              title: 'Activity Feed',
+              data: useFilteredEvents.value,
             );
           },
         );

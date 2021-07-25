@@ -25,7 +25,7 @@ class MyApp extends HookConsumerWidget {
             builder: (context) => IconButton(
               icon: CircleAvatar(
                 backgroundImage: NetworkImage(
-                  ref.read(userProvider).state?.avatarUrl ?? defaultAvatar,
+                  ref.read(userProvider).state.avatarUrl ?? defaultAvatar,
                 ),
               ),
               onPressed: () {
@@ -65,7 +65,7 @@ class MyApp extends HookConsumerWidget {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final feedChild = ref.watch(userProvider).state == null
+          final feedChild = ref.watch(userProvider).state.login == null
               ? const PublicEvents()
               : const EventsList();
           if (constraints.maxWidth < 700) {
