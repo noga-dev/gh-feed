@@ -5,6 +5,7 @@ import 'package:gaf/utils/common.dart';
 import 'package:gaf/utils/settings.dart';
 import 'package:github/github.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:timeago/timeago.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_themes.dart';
@@ -23,6 +24,7 @@ class EventsList extends HookConsumerWidget {
   Widget build(context, ref) {
     final useEvents = useState(<SliverEventItem>[]);
     final useFilteredEvents = useState(<SliverEventItem>[]);
+    final useUpdateTime = useState(DateTime.now());
     return ref
         .watch(
           dioGetProvider(
@@ -31,9 +33,9 @@ class EventsList extends HookConsumerWidget {
         )
         .when(
           loading: () => const CircularProgressIndicator.adaptive(),
-          error: (err, stack) => Text(err.toString()),
+          error: (err, stack) => Text(stack?.toString() ?? ''),
           data: (data) {
-            /* TODO P2: for PR, Issue, IssueComment, and
+            /* TODO p2 for PR, Issue, IssueComment, and
             Fork events show relevant
             details instead of repo preview*/
             useEffect(() {
@@ -57,7 +59,7 @@ class EventsList extends HookConsumerWidget {
               refreshFunc: () => ref.refresh(dioGetProvider(
                   '/users/${ref.read(userProvider).state.login}/received_events')),
               title: 'Activity Feed',
-              refreshText: data.headers['date']!.first,
+              refreshText: format(useUpdateTime.value),
               data: useFilteredEvents.value,
             );
           },
@@ -86,7 +88,7 @@ class SliverEventItem extends HookConsumerWidget {
 
     return ref.watch(dioGetProvider('/repos/${event.repo!.name}')).when(
           loading: () => const CircularProgressIndicator.adaptive(),
-          error: (err, stack) => Text(err.toString()),
+          error: (err, stack) => Text(stack?.toString() ?? ''),
           data: (data) {
             if (event.type == 'PushEvent' &&
                 useSettingsState.value.filterPushEvents) {
