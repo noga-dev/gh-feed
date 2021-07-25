@@ -32,7 +32,9 @@ class TrendingRepos extends HookConsumerWidget {
   Widget build(context, ref) {
     final useUpdateTime = useState(DateTime.now());
     return ref.watch(trendingReposProvider).when(
-          loading: () => const CircularProgressIndicator.adaptive(),
+          loading: () => const Center(
+            child: CircularProgressIndicator.adaptive(),
+          ),
           error: (err, stack) => Text(err.toString()),
           data: (data) => ListViewer(
             refreshFunc: () {
