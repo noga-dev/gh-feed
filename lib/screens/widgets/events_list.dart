@@ -9,7 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_themes.dart';
 import '../../utils/providers.dart';
-import 'common/list_viewer.dart';
+import 'components/list_viewer.dart';
 import 'events_list/event_card.dart';
 import 'events_list/event_title.dart';
 import 'events_list/repo_preview.dart';
@@ -32,18 +32,18 @@ class EventsList extends HookConsumerWidget {
         .when(
           loading: () => const CircularProgressIndicator.adaptive(),
           error: (err, stack) => Text(err.toString()),
-          data: (response) {
+          data: (data) {
             /* TODO P2: for PR, Issue, IssueComment, and
             Fork events show relevant
             details instead of repo preview*/
             useEffect(() {
-              for (var item in response.data) {
+              for (var item in data.data) {
                 final event = Event.fromJson(item);
                 if (event.payload!.isNotEmpty) {
                   useEvents.value.add(SliverEventItem(event: event));
                 }
               }
-            }, [response.data]);
+            }, [data.data]);
 
             if (ref.watch(settingsProvider).state.filterPushEvents) {
               useFilteredEvents.value = useEvents.value
@@ -57,6 +57,7 @@ class EventsList extends HookConsumerWidget {
               refreshFunc: () => ref.refresh(dioGetProvider(
                   '/users/${ref.read(userProvider).state.login}/received_events')),
               title: 'Activity Feed',
+              refreshText: data.headers['date']!.first,
               data: useFilteredEvents.value,
             );
           },

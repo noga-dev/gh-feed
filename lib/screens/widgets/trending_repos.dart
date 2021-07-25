@@ -6,8 +6,8 @@ import 'package:gaf/utils/providers.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'common/list_viewer.dart';
+import 'package:timeago/timeago.dart';
+import 'components/list_viewer.dart';
 
 class SomeClass extends StatefulHookWidget {
   const SomeClass({Key? key}) : super(key: key);
@@ -30,12 +30,17 @@ class TrendingRepos extends HookConsumerWidget {
 
   @override
   Widget build(context, ref) {
+    final useUpdateTime = useState(DateTime.now());
     return ref.watch(trendingReposProvider).when(
           loading: () => const CircularProgressIndicator.adaptive(),
           error: (err, stack) => Text(err.toString()),
           data: (data) => ListViewer(
-            refreshFunc: () => ref.refresh(trendingReposProvider),
+            refreshFunc: () {
+              useUpdateTime.value = DateTime.now();
+              return ref.refresh(trendingReposProvider);
+            },
             title: 'Trending Repos',
+            refreshText: format(useUpdateTime.value),
             data: data.map(
               (e) {
                 Color? cardColor;
