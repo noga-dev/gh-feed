@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 class ListViewer extends StatelessWidget {
   const ListViewer({
@@ -14,7 +15,7 @@ class ListViewer extends StatelessWidget {
 
   final String title;
   final Function() refreshFunc;
-  final dynamic data;
+  final List<Widget> data;
   final String refreshText;
 
   @override
@@ -65,7 +66,8 @@ class ListViewer extends StatelessWidget {
           },
         ),
         SliverAppBar(
-          pinned: true,
+          floating: true,
+          snap: true,
           title: Padding(
             padding: const EdgeInsets.only(bottom: 12.0),
             child: Text(
@@ -74,11 +76,29 @@ class ListViewer extends StatelessWidget {
             ),
           ),
         ),
-        SliverPadding(
-          padding: const EdgeInsets.all(8.0),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate(data),
-          ),
+        HookBuilder(
+          builder: (context) {
+            final isTrendingRepo = data is List<MouseRegion>;
+            final useAnimController = useAnimationController(
+                duration: Duration(milliseconds: isTrendingRepo ? 1200 : 250))
+              ..forward();
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return SlideTransition(
+                    position: MaterialPointArcTween(
+                      begin: isTrendingRepo
+                          ? const Offset(0, 1)
+                          : const Offset(-1, 0),
+                      end: const Offset(0, 0),
+                    ).animate(useAnimController),
+                    child: data[index],
+                  );
+                },
+                childCount: data.length,
+              ),
+            );
+          },
         ),
       ],
     );

@@ -38,6 +38,7 @@ class EventsList extends HookConsumerWidget {
           error: (err, stack) => Text(stack?.toString() ?? ''),
           data: (data) {
             useEffect(() {
+              useEvents.value.clear();
               for (var item in data.data) {
                 final event = Event.fromJson(item);
                 if (event.payload!.isNotEmpty) {
