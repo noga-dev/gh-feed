@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:gaf/utils/common.dart';
 import 'package:gaf/utils/settings.dart';
 import 'package:github/github.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -25,6 +24,7 @@ class EventsList extends HookConsumerWidget {
     final useEvents = useState(<SliverEventItem>[]);
     final useFilteredEvents = useState(<SliverEventItem>[]);
     final useUpdateTime = useState(DateTime.now());
+    final filter = ref.watch(settingsProvider).state;
     return ref
         .watch(
           dioGetProvider(
@@ -37,9 +37,6 @@ class EventsList extends HookConsumerWidget {
           ),
           error: (err, stack) => Text(stack?.toString() ?? ''),
           data: (data) {
-            /* TODO p2 for PR, Issue, IssueComment, and
-            Fork events show relevant
-            details instead of repo preview*/
             useEffect(() {
               for (var item in data.data) {
                 final event = Event.fromJson(item);
@@ -49,13 +46,45 @@ class EventsList extends HookConsumerWidget {
               }
             }, [data.data]);
 
-            if (ref.watch(settingsProvider).state.filterPushEvents) {
-              useFilteredEvents.value = useEvents.value
-                  .where((element) => element.event.type != 'PushEvent')
-                  .toList();
-            } else {
-              useFilteredEvents.value = useEvents.value.toList();
-            }
+            useEffect(() {
+              useFilteredEvents.value = useEvents.value;
+              if (filter.filterPushEvent) {
+                useFilteredEvents.value = useFilteredEvents.value
+                    .where((element) =>
+                        element.event.type != Settings.kFilterPushEvent)
+                    .toList();
+              }
+              if (filter.filterForkEvent) {
+                useFilteredEvents.value = useFilteredEvents.value
+                    .where((element) =>
+                        element.event.type != Settings.kFilterForkEvent)
+                    .toList();
+              }
+              if (filter.filterWatchEvent) {
+                useFilteredEvents.value = useFilteredEvents.value
+                    .where((element) =>
+                        element.event.type != Settings.kFilterWatchEvent)
+                    .toList();
+              }
+              if (filter.filterCreateEvent) {
+                useFilteredEvents.value = useFilteredEvents.value
+                    .where((element) =>
+                        element.event.type != Settings.kFilterCreateEvent)
+                    .toList();
+              }
+              if (filter.filterPullRequestEvent) {
+                useFilteredEvents.value = useFilteredEvents.value
+                    .where((element) =>
+                        element.event.type != Settings.kFilterPullRequestEvent)
+                    .toList();
+              }
+              if (filter.filterReleaseEvent) {
+                useFilteredEvents.value = useFilteredEvents.value
+                    .where((element) =>
+                        element.event.type != Settings.kFilterReleaseEvent)
+                    .toList();
+              }
+            }, [filter]);
 
             return ListViewer(
               refreshFunc: () => ref.refresh(dioGetProvider(
@@ -79,29 +108,10 @@ class SliverEventItem extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final useSettingsState = useState(
-      Settings.fromJson(
-        ref.read(boxProvider).get(
-              kBoxKeySettings,
-              defaultValue: Settings().toJson(),
-            ),
-      ),
-    );
-
     return ref.watch(dioGetProvider('/repos/${event.repo!.name}')).when(
           loading: () => const CircularProgressIndicator.adaptive(),
           error: (err, stack) => Text(stack?.toString() ?? ''),
           data: (data) {
-            if (event.type == 'PushEvent' &&
-                useSettingsState.value.filterPushEvents) {
-              return const SizedBox.shrink();
-            }
-
-            if (event.type == 'DeleteEvent' &&
-                useSettingsState.value.filterDeleteEvents) {
-              return const SizedBox.shrink();
-            }
-
             return Card(
               color: Theme.of(context).brightness == Brightness.dark
                   ? themeDataDark.cardColor
