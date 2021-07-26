@@ -45,14 +45,15 @@ class RepoPreview extends StatelessWidget {
                   height: 24,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  repo.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                Expanded(
+                  child: Text(
+                    repo.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
-                const Spacer(),
                 Text(repo.language),
               ],
             ),
