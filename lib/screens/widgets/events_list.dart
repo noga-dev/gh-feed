@@ -32,7 +32,9 @@ class EventsList extends HookConsumerWidget {
           ),
         )
         .when(
-          loading: () => const CircularProgressIndicator.adaptive(),
+          loading: () => const Center(
+            child: CircularProgressIndicator.adaptive(),
+          ),
           error: (err, stack) => Text(stack?.toString() ?? ''),
           data: (data) {
             /* TODO p2 for PR, Issue, IssueComment, and
