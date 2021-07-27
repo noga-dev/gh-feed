@@ -4,7 +4,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gaf/utils/settings.dart';
 import 'package:github/github.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:timeago/timeago.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../theme/app_themes.dart';
@@ -23,7 +22,6 @@ class EventsList extends HookConsumerWidget {
   Widget build(context, ref) {
     final useEvents = useState(<SliverEventItem>[]);
     final useFilteredEvents = useState(<SliverEventItem>[]);
-    final useUpdateTime = useState(DateTime.now());
     final filter = ref.watch(settingsProvider).state;
     return ref
         .watch(
@@ -91,7 +89,6 @@ class EventsList extends HookConsumerWidget {
               refreshFunc: () => ref.refresh(dioGetProvider(
                   '/users/${ref.read(userProvider).state.login}/received_events')),
               title: 'Activity Feed',
-              refreshText: format(useUpdateTime.value),
               data: useFilteredEvents.value,
             );
           },

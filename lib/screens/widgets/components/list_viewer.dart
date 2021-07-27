@@ -3,23 +3,31 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:timeago/timeago.dart';
 
-class ListViewer extends StatelessWidget {
+class ListViewer extends HookConsumerWidget {
   const ListViewer({
     Key? key,
     required this.refreshFunc,
     required this.data,
     required this.title,
-    this.refreshText = '',
   }) : super(key: key);
 
   final String title;
   final Function() refreshFunc;
   final List<Widget> data;
-  final String refreshText;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context, ref) {
+    final isTrendingRepo = data is List<MouseRegion>;
+    final useUpdateTime = useState(DateTime.now());
+    final useAnimController = useAnimationController(
+        duration: Duration(milliseconds: isTrendingRepo ? 1200 : 250))
+      ..forward();
+    useEffect(() {
+      useUpdateTime.value = DateTime.now();
+    }, [refreshFunc]);
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
@@ -33,7 +41,7 @@ class ListViewer extends StatelessWidget {
             double refreshIndicatorExtent,
           ) {
             const Curve opacityCurve =
-                Interval(.1, .9, curve: Curves.easeInOut);
+                Interval(.1, .9, curve: Curves.easeInToLinear);
             return Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
@@ -52,7 +60,7 @@ class ListViewer extends StatelessWidget {
                               size: 24.0,
                             ),
                           ),
-                          Text(refreshText.isEmpty ? 'Pull' : refreshText),
+                          Text(format(useUpdateTime.value)),
                         ]),
                       )
                     : Opacity(
@@ -76,29 +84,20 @@ class ListViewer extends StatelessWidget {
             ),
           ),
         ),
-        HookBuilder(
-          builder: (context) {
-            final isTrendingRepo = data is List<MouseRegion>;
-            final useAnimController = useAnimationController(
-                duration: Duration(milliseconds: isTrendingRepo ? 1200 : 250))
-              ..forward();
-            return SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return SlideTransition(
-                    position: MaterialPointArcTween(
-                      begin: isTrendingRepo
-                          ? const Offset(0, 1)
-                          : const Offset(-1, 0),
-                      end: const Offset(0, 0),
-                    ).animate(useAnimController),
-                    child: data[index],
-                  );
-                },
-                childCount: data.length,
-              ),
-            );
-          },
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              return SlideTransition(
+                position: MaterialPointArcTween(
+                  begin:
+                      isTrendingRepo ? const Offset(0, 1) : const Offset(-1, 0),
+                  end: const Offset(0, 0),
+                ).animate(useAnimController),
+                child: data[index],
+              );
+            },
+            childCount: data.length,
+          ),
         ),
       ],
     );
