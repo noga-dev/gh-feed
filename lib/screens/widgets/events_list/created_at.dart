@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:timeago/timeago.dart';
+import 'package:get_time_ago/get_time_ago.dart';
 
 class CreatedAt extends StatelessWidget {
   const CreatedAt({
@@ -12,7 +12,7 @@ class CreatedAt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      format(timeCreated),
+      GetTimeAgo.parse(timeCreated),
     );
   }
 }
