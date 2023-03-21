@@ -36,7 +36,7 @@ dependencies:
   github: ^8.1.1
   very_good_analysis: ^2.1.2
   url_launcher: ^6.0.9
-  dio: ^4.0.0
+  dio: ^5.0.3
   intl: ^0.17.0
   hive_flutter: ^1.1.0
   gh_trend: ^1.1.0
